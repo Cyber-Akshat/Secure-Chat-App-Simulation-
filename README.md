@@ -1,4 +1,4 @@
-# Secure Chat App Simulation
+ # Secure Chat App Simulation
 
 ## Overview
 
@@ -10,10 +10,10 @@ The Secure Chat App Simulation project aims to create a simple encrypted chat ap
 
 | Team Member | Role                         |
 | ----------- | ---------------------------- |
-| Mitchell    | Software Tester              |
+| Akshat      | Lead Security & Cryptography |
 | Patric      | Developer                    |
 | Gideon      | UI/UX Designer               |
-| Akshat      | Lead Security & Cryptography |
+| Mitchell    | Software Tester              |
 
 ---
 
