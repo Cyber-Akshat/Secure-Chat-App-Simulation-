@@ -1,4 +1,4 @@
- # Secure Chat App Simulation
+# Secure Chat App Simulation
 
 ## Overview
 
