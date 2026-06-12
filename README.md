@@ -8,12 +8,12 @@ The Secure Chat App Simulation project aims to create a simple encrypted chat ap
 
 ## Team Roles
 
-| Team Member | Role                         |
-| ----------- | ---------------------------- |
-| Akshat      | Lead Security & Cryptography |
-| Patric      | Developer                    |
-| Gideon      | UI/UX Designer               |
-| Mitchell    | Software Tester              |
+| Team Member | Role                                     | Focus
+| ----------- | ----------------------------------       | ---------------------------------------------------
+| Akshat      | Lead Security & Cryptography             | Implementing end-to-end encryption (E2EE) logic, key generation, and secure key exchange simulation.
+| Patric      | Backend & Session Engineer               | Setting up the server/simulation environment, managing message routing between the two users, and handling session state.
+| Gideon      | Frontend Developer                       | Building the chat interface, handling user inputs, displaying messages, and managing the visual state.
+| Mitchell    | Application Security & History Specialist| Input sanitization (XSS defense), secure storage for message history, and comprehensive vulnerability testing.
 
 ---
 
@@ -73,6 +73,12 @@ Create a secure chat application that:
 
 ---
 
+## Github University Help Repo
+
+Leeds Trinity Repo: 
+
+---
+
 ## Resources
 
 * Socket.IO: https://socket.io
@@ -81,6 +87,7 @@ Create a secure chat application that:
 * Cryptography Chat Example: https://github.com/HarshVaragiya/Chat-Application
 
 ---
+
 
 ## Expected Outcome
 
