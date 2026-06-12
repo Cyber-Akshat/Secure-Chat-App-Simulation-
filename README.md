@@ -75,7 +75,7 @@ Create a secure chat application that:
 
 ## Github University Help Repo
 
-Leeds Trinity Repo: 
+Leeds Trinity Repo: cs-ltu.github.io
 
 ---
 
