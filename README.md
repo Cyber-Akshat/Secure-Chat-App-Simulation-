@@ -8,12 +8,12 @@ The Secure Chat App Simulation project aims to create a simple encrypted chat ap
 
 ## Team Roles
 
-| Team Member | Role                                     | Focus
-| ----------- | ----------------------------------       | ---------------------------------------------------
-| Akshat      | Lead Security & Cryptography             | Implementing end-to-end encryption (E2EE) logic, key generation, and secure key exchange simulation.
-| Patric      | Backend & Session Engineer               | Setting up the server/simulation environment, managing message routing between the two users, and handling session state.
-| Gideon      | Frontend Developer                       | Building the chat interface, handling user inputs, displaying messages, and managing the visual state.
-| Mitchell    | Application Security & History Specialist| Input sanitization (XSS defense), secure storage for message history, and comprehensive vulnerability testing.
+| Team Member | Role | Responsibilities |
+|-------------|------|------------------|
+| **Akshat** | Lead Security & Cryptography | Implements end-to-end encryption (E2EE), key generation, secure key exchange simulation, and cryptographic security mechanisms. |
+| **Patric** | Backend & Session Engineer | Develops the server/simulation environment, manages message routing between users, and handles session state management. |
+| **Gideon** | Frontend Developer | Builds the chat user interface, processes user inputs, displays messages, and manages the application's visual state. |
+| **Mitchell** | Application Security & History Specialist | Implements input sanitization (XSS protection), secures message history storage, and performs vulnerability assessment and security testing. |
 
 ---
 
