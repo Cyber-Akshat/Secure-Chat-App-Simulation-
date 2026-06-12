@@ -89,7 +89,7 @@ Leeds Trinity Repo: cs-ltu.github.io
 ---
 
 ## Projects Chosen
-- Patrick: SQL Injection Simulation
+- Patrick: SQL Injection Simulation / Caeser Cipher Encoder Decoder
 - Akshat: Hash Cracker & Hashing Challenge / Encryption, Caeser Cipher Encoder Decoder
 - Gideon: Password Strength Checker & Meter / Two-Facter Authentication Simulator
 - Mitchell: HTML & Javascript Injection / Cross-Site Scripting (XSS) Simulation
