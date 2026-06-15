@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <title>🗨 Hi Chat</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script defer type="module" src="app.js"></script>
+  </head>
+
+  <body>
+    <header title="Welcome to the main chat room!">
+      <h1>🗨 Hi Chat</h1>
+    </header>
+
+    <div id="content-wrapper">
+
+      <aside>
+        <h2>Users online</h2>
+
+        <ul id="users"></ul>
+      </aside>
+
+      <main id="content">
+
+        <div id="conversation">
+          <div style="text-align: center;">
+            <h2 style="color: #333d47; margin-bottom: 8px;">Welcome to Hi Chat</h2>
+            <p style="color: #8c96a3; font-size: 0.95rem;">Select a user from the sidebar to start a conversation.</p>
+          </div>
+        </div>
+
+        <div id="typing-indicator">
+          </div>
+
+        <form id="form">
+
+          <input
+            type="text"
+            id="data"
+            placeholder="Type a message..."
+            autocomplete="off"
+            title="Press Enter or click Send to submit"
+          />
+
+          <button type="submit" id="send" title="Send your encrypted message instantly">Send ᯓ✉︎</button>
+        </form>
+      </main>
+
+    </div> <template id="user">
+      <li></li>
+    </template>
+
+    <template id="message">
+      <div class="message-row">
+        <div class="message-bubble">
+          <span class="sender-name"></span>
+          <p class="message-text"></p>
+        </div>
+      </div>
+    </template>
+  </body>
+</html>
