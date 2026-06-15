@@ -6,12 +6,14 @@ from fastapi.responses import FileResponse
 # Assuming you have a chat_server.py file with a ChatServer class
 from ChatServer import ChatServer
 
+# Creates the app, sets the port, and uses the ChatServer object
 app = FastAPI()
 port = 8080
 server = ChatServer()
 
 
-# 1. WebSocket Route
+# Checks for connections at start_web_socket and hands the connection
+# to server.handle_connection() to manage messaging
 @app.websocket("/start_web_socket")
 async def websocket_endpoint(websocket: WebSocket):
     # In FastAPI, WebSocket connections must be explicitly accepted.
@@ -19,7 +21,8 @@ async def websocket_endpoint(websocket: WebSocket):
     await server.handle_connection(websocket)
 
 
-# 2. Static File / Fallback Route
+# catches all get requests and tries to serve the requested file which gets returned
+# directly - if not, the file falls back to public/index.html
 @app.get("/{catchall:path}")
 async def serve_files(catchall: str):
     # Replicating Oak's context.send() fallback behavior
@@ -36,5 +39,5 @@ async def serve_files(catchall: str):
 
 if __name__ == "__main__":
     print(f"Listening at http://localhost:{port}")
-    # Run the application using uvicorn
+    # Starts the server using uvicorn
     uvicorn.run(app, host="0.0.0.0", port=port)
