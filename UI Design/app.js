@@ -2,45 +2,47 @@
 // ONLINE USERS FUNCTIONS
 // ============================================================================
 
-// Updates the list of online users displayed in the sidebar with matching status indicators
+// Updates the list of online users with status indicators and clean circular profile avatars
 function updateUserList(usernames) {
-
-  // Get the <ul> element that contains the user list
   const userList = document.getElementById("users");
 
-  // Remove all existing user entries before rebuilding the list
+  // Remove old nodes before rebuilding
   userList.replaceChildren();
 
-  // Loop through each username received from the server
   for (const username of usernames) {
-
-    // Create a new <li> element for this user wrapper
     const listItem = document.createElement("li");
+    listItem.style.display = "flex";
+    listItem.style.alignItems = "center";
+    listItem.style.width = "100%";
 
-    // Create a little span for the online status dot indicator seen in the design
+    // 1. Generate a circular avatar using the user's initials
+    const avatarImg = document.createElement("img");
+    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff&rounded=true&size=32`;
+    avatarImg.alt = `${username}'s avatar`;
+    avatarImg.style.width = "32px";
+    avatarImg.style.height = "32px";
+    avatarImg.style.marginRight = "12px";
+    avatarImg.style.display = "block";
+
+    // 2. Setup text name layout
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = username;
+    nameSpan.style.flex = "1"; // Automatically pushes the green status dot to the right margin
+
+    // 3. Status indicator dot node
     const statusDot = document.createElement("span");
     statusDot.style.width = "8px";
     statusDot.style.height = "8px";
-    statusDot.style.backgroundColor = "#10b981"; // Vibrant emerald green dot
+    statusDot.style.backgroundColor = "#10b981"; // Emerald Green
     statusDot.style.borderRadius = "50%";
-    statusDot.style.marginRight = "12px";
     statusDot.style.display = "inline-block";
 
-    // Create a span to hold the actual text name
-    const nameSpan = document.createElement("span");
-    nameSpan.textContent = username;
+    listItem.setAttribute("title", `${username} is connected and active.`);
 
-    // Add a tooltip that appears when the user hovers over the username
-    listItem.setAttribute(
-      "title",
-      `${username} is connected and active in this server.`
-    );
-
-    // Assemble the components: Drop the dot and name inside the list item
-    listItem.appendChild(statusDot);
+    // Attach elements to list container
+    listItem.appendChild(avatarImg);
     listItem.appendChild(nameSpan);
-
-    // Add the completed item to the online users list panel
+    listItem.appendChild(statusDot);
     userList.appendChild(listItem);
   }
 }
@@ -51,21 +53,13 @@ function updateUserList(usernames) {
 
 // This place ensures we show a friendly message when another user is typing!
 function showUserIsTyping(username) {
-
-  // Grab our typing indicator div from the HTML layout
   const typingIndicator = document.getElementById("typing-indicator");
-
-  // Change the blank space to say exactly who is working on a message
   typingIndicator.textContent = `${username} is typing...`;
 }
 
 // This place ensures the text clears out and goes invisible when they stop typing
 function clearTypingIndicator() {
-
-  // Grab that same typing indicator div
   const typingIndicator = document.getElementById("typing-indicator");
-
-  // Make it completely blank again so it takes up no visual space
   typingIndicator.textContent = "";
 }
 
@@ -75,19 +69,14 @@ function clearTypingIndicator() {
 
 // This place ensures that whenever a message is rendered, it gets structured like a proper bubble layout
 function addMessageToChat(username, messageText) {
-
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
-
-  // Clone our updated template blueprint structure
   const messageClone = template.content.cloneNode(true);
 
-  // Target our precise elements using the class selectors
   const rowDiv = messageClone.querySelector(".message-row");
   const nameSpan = messageClone.querySelector(".sender-name");
   const textParagraph = messageClone.querySelector(".message-text");
 
-  // Fill in the details
   nameSpan.textContent = username;
   textParagraph.textContent = messageText;
 
@@ -103,10 +92,7 @@ function addMessageToChat(username, messageText) {
     conversationBox.replaceChildren();
   }
 
-  // Inject the message directly into the feed container!
   conversationBox.appendChild(messageClone);
-
-  // Keep the viewport locked to the bottom scroll position
   conversationBox.scrollTop = conversationBox.scrollHeight;
 }
 
@@ -117,44 +103,57 @@ function addMessageToChat(username, messageText) {
 // Grab the text entry box and the form from our HTML structure
 const messageInput = document.getElementById("data");
 const chatForm = document.getElementById("form");
-
-// A handy timer variable to track when the user stops typing
 let typingTimeout;
 
 // This place ensures we notice every single keystroke when YOU type a message
 messageInput.addEventListener("input", () => {
-
-  // 1. This is where you notify your chat server that YOU are actively typing!
-  // Example: socket.emit("client-is-typing");
   console.log("You are typing...");
-
-  // 2. Clear any old countdown timer currently running
   clearTimeout(typingTimeout);
 
-  // 3. Start a fresh countdown! If you don't press a key for 1.5 seconds,
-  // this place ensures we assume you have paused or finished.
   typingTimeout = setTimeout(() => {
-    // Example: socket.emit("client-stopped-typing");
     console.log("You stopped typing.");
   }, 1500);
 });
 
-// This place handles form submission cleanly without loading a whole new webpage
+// This place handles form submission cleanly and triggers a simulated friend reply
 chatForm.addEventListener("submit", (event) => {
   // CRITICAL: Stops the browser from submitting the form data to a new blank window/reloading!
   event.preventDefault();
-
   const messageText = messageInput.value.trim();
 
   if (messageText !== "") {
-    // Send it to the chat screen instantly as a formatted bubble
+    // 1. Send your message to the screen instantly
     addMessageToChat("You", messageText);
-
-    // Clear out the text area so it's fresh for your next entry
     messageInput.value = "";
-
-    // Reset our typing indicator tracker values
     clearTimeout(typingTimeout);
+
+    // 2. Choose a random friend from your list to reply
+    const friends = ["Alice Johnson", "Robert Fox", "Cameron Williamson", "Devon Lane"];
+    const randomFriend = friends[Math.floor(Math.random() * friends.length)];
+
+    // 3. After 1 second, show that your friend is typing...
+    setTimeout(() => {
+      showUserIsTyping(randomFriend);
+
+      // 4. After 2 more seconds of typing, clear the indicator and drop their reply!
+      setTimeout(() => {
+        clearTypingIndicator();
+
+        // A list of fun responses they can give back
+        const replies = [
+          "Wow, that sounds amazing!",
+          "Haha totally agree. What are you up to today?",
+          "Awesome! Let me check on that and get back to you.",
+          "Nice! Did you see the new dashboard updates? Looks super clean.",
+          "I'm working on the backend code right now! 🚀"
+        ];
+        const randomReply = replies[Math.floor(Math.random() * replies.length)];
+
+        // Add their message as a received (left-aligned) bubble
+        addMessageToChat(randomFriend, randomReply);
+      }, 2000);
+
+    }, 1000);
   }
 });
 

@@ -235,3 +235,41 @@ main#content {
 #send:hover {
   background-color: #1d4ed8;
 }
+/* ============================================================================
+   AVATAR SIDEBAR LAYOUT ALIGNMENT
+   ============================================================================ */
+
+/* Adjusts the sidebar list items to become flexible, full-width rows */
+#users li {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  gap: 4px; /* Creates a clean gap structure */
+}
+
+/* Ensures the avatar image stays perfectly round and doesn't shrink */
+#users li img {
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+/* Forces the username text to take up remaining space, pushing the dot right */
+#users li span:not(:last-child) {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #333d47;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Safely truncates names if they are too long */
+}
+
+/* Explicitly targets the online status indicator dot */
+#users li span:last-child {
+  flex-shrink: 0;
+  margin-left: auto; /* Solid safety fallback to lock the dot on the right margin */
+}
