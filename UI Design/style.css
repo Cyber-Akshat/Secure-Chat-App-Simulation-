@@ -1,223 +1,275 @@
-/* ==========================================================================
-   THEME VARIABLES
-   --------------------------------------------------------------------------
-   Centralized color palette, spacing values, border radius, and animation
-   settings used throughout the chat application.
-   ========================================================================== */
-:root {
-    --bg-dark: #0f172a;
-    --bg-light: #f8fafc;
-    --accent-green: #10b981;
-    --accent-hover: #059669;
-    --badge-green: #d1fae5;
-    --text-dark: #1e293b;
-    --border-color: #e2e8f0;
-    --radius: 12px;
-    --transition: all 0.2s ease-in-out;
+/* ============================================================================
+   GLOBAL STYLES & RESET
+   ============================================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ==========================================================================
-   PAGE LAYOUT
-   --------------------------------------------------------------------------
-   Creates a two-column chat interface:
-   - Left: Online users sidebar
-   - Right: Main chat area
-   ========================================================================== */
 body {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    color: var(--text-dark);
-    background-color: var(--bg-light);
+  background-color: #f4f6fa; /* Light grey/blue background seen in the image */
+  height: 100vh;
+  display: flex;
+  flex-direction: column; /* Stacks header on top, content below */
+  overflow: hidden;
 }
 
-/* ==========================================================================
-   HEADER
-   --------------------------------------------------------------------------
-   Top navigation/banner containing the application title.
-   ========================================================================== */
+/* ============================================================================
+   DARK TOP NAVIGATION HEADER
+   ============================================================================ */
 header {
-    grid-column: 1 / -1;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-dark);
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    z-index: 10;
+  background-color: #0b1426; /* Deep dark blue navbar */
+  color: #ffffff;
+  padding: 15px 30px;
+  display: flex;
+  align-items: center;
+  height: 60px;
 }
 
 header h1 {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: -0.5px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* ==========================================================================
+/* Wrapping structural container for layout spacing */
+#content-wrapper {
+  display: flex;
+  flex: 1;
+  padding: 20px;
+  gap: 20px; /* Space between sidebar and main panel */
+  height: calc(100vh - 60px);
+}
+
+/* ============================================================================
    ONLINE USERS SIDEBAR
-   --------------------------------------------------------------------------
-   Displays currently connected users and their status badges.
-   ========================================================================== */
+   ============================================================================ */
 aside {
-    padding: 1.5rem;
-    background-color: #fff;
-    border-right: 1px solid var(--border-color);
+  width: 280px;
+  background: #ffffff;
+  border-radius: 16px; /* Smooth rounded container */
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 aside h2 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #64748b;
+  font-size: 0.9rem;
+  color: #8c96a3; /* Muted grey title */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 15px;
 }
 
-aside ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+#users {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Individual user badge */
-aside li {
-    display: block;
-    margin-top: 0.5rem;
-    padding: 0.6rem 1rem;
-    background-color: var(--badge-green);
-    color: #065f46;
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 0.95rem;
-    cursor: help;
-    transition: var(--transition);
+/* Each user item in the list */
+#users li {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #333d47;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-/* User badge hover animation */
-aside li:hover {
-    transform: translateX(5px);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+#users li:hover {
+  background-color: #f0f4ff; /* Slight highlight on hover */
 }
 
-/* ==========================================================================
-   MAIN CHAT AREA
-   --------------------------------------------------------------------------
-   Contains the conversation history and message input form.
-   ========================================================================== */
-main {
-    display: grid;
-    grid-template-rows: 1fr auto;
-    height: calc(100vh - 3.5rem);
-    padding: 1.5rem;
-    background-color: #f1f5f9;
-    box-sizing: border-box;
+/* ============================================================================
+   MAIN CHAT CONTENT PANEL
+   ============================================================================ */
+main#content {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 16px; /* Smooth rounded window matching sidebar */
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  position: relative;
 }
 
-/* Scrollable message container */
+/* ============================================================================
+   WHATSAPP-STYLE CHAT BUBBLES
+   ============================================================================ */
+
+/* The conversation container should stack messages from top to bottom */
 #conversation {
-    display: flex;
-    flex-direction: column-reverse;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-    margin-bottom: 1rem;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  justify-content: flex-start; /* Keeps messages starting from the top */
+  align-items: stretch;        /* Allows rows to span full width */
 }
 
-/* Message bubble */
-#conversation > div {
-    padding: 0.85rem 1.25rem;
-    margin-bottom: 0.75rem;
-    border-radius: var(--radius);
-    background-color: #fff;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    max-width: 75%;
-    align-self: flex-start;
-    transition: var(--transition);
+/* Full-width container row to help align chat bubbles left or right */
+.message-row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 4px;
 }
 
-/* Message hover effect */
-#conversation > div:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+/* Default style for a chat bubble */
+.message-bubble {
+  max-width: 65%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
-/* Sender username */
-#conversation span {
-    display: block;
-    margin-bottom: 0.2rem;
-    font-weight: 600;
-    color: var(--bg-dark);
-    font-size: 0.85rem;
+/* The small sender name inside the bubble */
+.sender-name {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 3px;
 }
 
-/* Message text */
-#conversation p {
-    margin: 0;
-    color: #334155;
-    line-height: 1.4;
-    font-size: 0.95rem;
+/* The actual text body */
+.message-text {
+  color: #374151;
+  word-break: break-word;
 }
 
-/* ==========================================================================
-   MESSAGE INPUT FORM
-   --------------------------------------------------------------------------
-   Allows users to type and send chat messages.
-   ========================================================================== */
-form {
-    display: flex;
-    align-items: center;
-    margin: 0;
+/* Sent messages (YOU) - Aligns to the right with a beautiful light green tint */
+.message-row.sent {
+  justify-content: flex-end;
+}
+.message-row.sent .message-bubble {
+  background-color: #d9fdd3; /* Soft WhatsApp light-green tint */
+  border-top-right-radius: 2px; /* Distinct chat bubble corner shape */
+}
+.message-row.sent .sender-name {
+  color: #059669; /* Darker green for your name indicator */
 }
 
-/* Text input field */
-input {
-    flex: 1;
-    padding: 0.75rem 1.25rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    font-size: 1rem;
-    background-color: #fff;
-    color: var(--text-dark);
-    outline: none;
-    transition: var(--transition);
+/* Received messages (OTHERS) - Aligns to the left with a clean white look */
+.message-row.received {
+  justify-content: flex-start;
+}
+.message-row.received .message-bubble {
+  background-color: #ffffff;
+  border-top-left-radius: 2px;
+  border: 1px solid #e5e7eb;
+}
+.message-row.received .sender-name {
+  color: #2563eb; /* Blue name signature for clarity */
 }
 
-/* Input focus state */
-input:focus {
-    border-color: var(--accent-green);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+/* Typing state element positioning */
+#typing-indicator {
+  font-style: italic;
+  color: #8c96a3;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  align-self: flex-start;
+  height: 20px;
+  padding-left: 10px;
 }
 
-/* Send button */
-button {
-    margin-left: 1rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--radius);
-    white-space: nowrap;
-    background-color: var(--accent-green);
-    color: #fff;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: var(--transition);
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.15);
+/* ============================================================================
+   FLOATING PILL MESSAGE INPUT FORM
+   ============================================================================ */
+#form {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #e1e6eb;
+  border-radius: 30px; /* Fully rounded pill structure */
+  padding: 6px 8px 6px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Button hover state */
-button:hover {
-    background-color: var(--accent-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+#data {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #333d47;
+  padding: 10px 0;
 }
 
-/* Button pressed state */
-button:active {
-    transform: translateY(1px);
+#data::placeholder {
+  color: #b0b8c4;
+}
+
+/* Bright blue send button matching image */
+#send {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  outline: none;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+#send:hover {
+  background-color: #1d4ed8;
+}
+/* ============================================================================
+   AVATAR SIDEBAR LAYOUT ALIGNMENT
+   ============================================================================ */
+
+/* Adjusts the sidebar list items to become flexible, full-width rows */
+#users li {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  gap: 4px; /* Creates a clean gap structure */
+}
+
+/* Ensures the avatar image stays perfectly round and doesn't shrink */
+#users li img {
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+/* Forces the username text to take up remaining space, pushing the dot right */
+#users li span:not(:last-child) {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #333d47;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Safely truncates names if they are too long */
+}
+
+/* Explicitly targets the online status indicator dot */
+#users li span:last-child {
+  flex-shrink: 0;
+  margin-left: auto; /* Solid safety fallback to lock the dot on the right margin */
 }
