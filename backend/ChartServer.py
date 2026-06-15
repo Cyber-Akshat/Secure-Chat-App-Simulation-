@@ -10,7 +10,7 @@ class ChatServer:
         # Extract the username query parameter from the URL
         username = websocket.query_params.get("username")
 
-        #1. Check if the username exists
+        #Check if the username exists
         if username in self.connected_clients:
             # Accepts and immediately close with a custom policy violation code
             await websocket.accept()
