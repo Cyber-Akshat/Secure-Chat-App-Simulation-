@@ -9,6 +9,9 @@ This project may use the following libraries and frameworks depending on the fin
 ```bash
 pip install websockets
 ```
+```bash
+pip install fastapi uvicorn
+```
 
 Used for real-time communication between users.
 
