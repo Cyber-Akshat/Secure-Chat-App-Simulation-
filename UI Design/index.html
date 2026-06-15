@@ -1,31 +1,120 @@
-<div class="main-app-wrapper">
+<!DOCTYPE html>
+<!-- Defines the document as an HTML5 document -->
 
-    <div class="users-sidebar">
-        <h3>Users online</h3>
-        <div class="users-list">
-            <div class="user-badge">Fred</div>
-            <div class="user-badge">Jo</div>
-        </div>
-    </div>
+<html lang="en">
+  <head>
+    <!-- Character encoding for proper text rendering -->
+    <meta charset="UTF-8" />
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <h2>Deno Chat App</h2>
-        </div>
+    <!-- Browser tab title -->
+    <title>🗨 Hi Chat</title>
 
-        <div id="message-box">
-            <div class="message incoming">
-                <strong>Jo</strong><br>Hi there!
-            </div>
-            <div class="message outgoing">
-                <strong>Fred</strong><br>Oh hello!
-            </div>
-        </div>
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="style.css" />
 
-        <form id="chat-form">
-            <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off" required>
-            <button type="submit" id="send-button">Send 📩</button>
-        </form>
-    </div>
+    <!-- Main JavaScript file (loaded after HTML parsing) -->
+    <script defer type="module" src="app.js"></script>
+  </head>
 
-</div>
+  <body>
+
+    <!-- ==========================================================
+         HEADER
+         ----------------------------------------------------------
+         Displays the application title at the top of the page.
+         ========================================================== -->
+    <header title="Welcome to the main chat room!">
+      <h1>🗨 Hi Chat</h1>
+    </header>
+
+    <!-- ==========================================================
+         ONLINE USERS SIDEBAR
+         ----------------------------------------------------------
+         Shows all currently connected users.
+         The list is populated dynamically by JavaScript.
+         ========================================================== -->
+    <aside>
+      <h2>Users online</h2>
+
+      <ul id="users"></ul>
+    </aside>
+
+    <!-- ==========================================================
+         MAIN CHAT AREA
+         ----------------------------------------------------------
+         Contains the conversation history, typing indicator,
+         and message input form.
+         ========================================================== -->
+    <main id="content">
+
+      <!-- Chat messages are inserted here dynamically -->
+      <div id="conversation"></div>
+
+      <!-- Typing status display
+           Example: "Alice is typing..." -->
+      <div
+        id="typing-indicator"
+        style="
+          font-style: italic;
+          color: gray;
+          height: 20px;
+          padding-left: 10px;
+          font-size: 0.9rem;
+        "
+      >
+      </div>
+
+      <!-- ======================================================
+           MESSAGE INPUT FORM
+           ------------------------------------------------------
+           Allows users to type and send chat messages.
+           ====================================================== -->
+      <form id="form">
+
+        <!-- Message input field -->
+        <input
+          type="text"
+          id="data"
+          placeholder="Type a message..."
+          autocomplete="off"
+          title="Press Enter or click Send to submit"
+        />
+
+        <!-- Submit button -->
+        <button
+          type="submit"
+          id="send"
+          title="Send your encrypted message instantly"
+        >
+          Send ᯓ✉︎
+        </button>
+
+      </form>
+    </main>
+
+    <!-- ==========================================================
+         USER TEMPLATE
+         ----------------------------------------------------------
+         Hidden template used to generate online user entries.
+         JavaScript clones this template when users connect.
+         ========================================================== -->
+    <template id="user">
+      <li></li>
+    </template>
+
+    <!-- ==========================================================
+         MESSAGE TEMPLATE
+         ----------------------------------------------------------
+         Hidden template used to create chat messages.
+         - span = username
+         - p = message content
+         ========================================================== -->
+    <template id="message">
+      <div>
+        <span></span>
+        <p></p>
+      </div>
+    </template>
+
+  </body>
+</html>
