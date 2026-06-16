@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 # Import our custom ChatServer class from ChatServer.py
 from ChatServer import ChatServer
 
-# Initialize the main API application
+# Initialize the main API applications
 app = FastAPI()
 port = 8080
 

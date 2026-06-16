@@ -3,6 +3,7 @@ function sanitizeUsername(raw) {
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
 
+
 const rawInput = prompt("Enter your username for Hi Chat:") ?? "";
 const myUsername = sanitizeUsername(rawInput) || "User_" + Math.floor(Math.random() * 1000);
 

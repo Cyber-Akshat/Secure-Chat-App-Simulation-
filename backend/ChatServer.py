@@ -44,6 +44,7 @@ class ChatServer:
             "message": data.get("message"),
         })
 
+
     async def client_disconnected(self, username: str):
         if username in self.connected_clients:
             del self.connected_clients[username]
