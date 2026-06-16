@@ -19,9 +19,9 @@ class ChatServer:
         if not os.path.exists(self.json_file_path):
             with open(self.json_file_path, "w") as file:
                 json.dump([], file, indent=4)
-            print("📁 Created a fresh users.json file!")
+            print("Created a fresh users.json file!")
         else:
-            print("📁 Found existing users.json file.")
+            print("Found existing users.json file.")
 
     def save_user_to_json(self, username: str):
         """Reads the JSON file, adds the new username if unique, and saves it back."""
@@ -37,12 +37,12 @@ class ChatServer:
                 # 3. Write the updated list back to the file with clean text indents
                 with open(self.json_file_path, "w") as file:
                     json.dump(registered_users, file, indent=4)
-                print(f"📝 Physically saved '{username}' into users.json!")
+                print(f"Physically saved '{username}' into users.json!")
             else:
-                print(f"ℹ️ User '{username}' was already registered in users.json.")
+                print(f"User '{username}' was already registered in users.json.")
 
         except Exception as e:
-            print(f"❌ Error writing to JSON file: {e}")
+            print(f"Error writing to JSON file: {e}")
 
     async def handle_connection(self, websocket: WebSocket):
         """Manages the full lifecycle of a single user connecting via WebSockets."""
@@ -73,7 +73,7 @@ class ChatServer:
 
         # Map the active WebSocket stream into our active global tracking list
         self.connected_clients[username] = websocket
-        print(f"🟢 Client connected: {username}")
+        print(f"Client connected: {username}")
 
         # Broadcast the new online user list out to all active panels
         await self.broadcast_usernames()
@@ -110,7 +110,7 @@ class ChatServer:
         if username in self.connected_clients:
             del self.connected_clients[username]
 
-        print(f"🔴 Client disconnected: {username}")
+        print(f"Client disconnected: {username}")
         # Refresh everyone's active sidebar list panel
         await self.broadcast_usernames()
 
