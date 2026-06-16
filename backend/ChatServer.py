@@ -1,11 +1,61 @@
 import json
+import sqlite3
+import os
 from fastapi import WebSocket, WebSocketDisconnect
+from pyglet.window.key import PRINT
 
 
 class ChatServer:
     def __init__(self):
         # Source for who's currently online
         self.connected_clients: dict[str, WebSocket] = {}
+
+        #Initialise the SQLite Database File
+        self.db_path = os.path.join(os.getcwd(), "chat_messages.db")
+        self.init_database()
+
+    def init_database(self):
+        #Creates the database file and the user table tracking unique username
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                username INTEGER PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
+        print("SQLite Database created!")
+
+    def save_user(self, username:str):
+        # Saves a username into the database if it doesn't already exist
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT OR IGNORE INTO users (username) VALUES (?)
+        ''', (username,))
+        conn.commit()
+        conn.close()
+        print(f"SQL Checked/Saved User: {username}")
+
+    async def handle_connection(self, websocket: WebSocket):
+        username = websocket.query_params.get("username")
+
+        if not username:
+            await websocket.close(code=1003, reason="Username is required")
+            return
+        await websocket.accept()
+
+        #Saves the username permanently into the SQL
+        self.save_user(username)
+
+        self.connected_clients[username] = websocket
+        print(f"New Live connection: {username}")
+
+
+        # Broadcast the updated online users list
+        await self.broadcast_usernames()
 
     async def handle_connection(self, websocket: WebSocket):
         # Asks user for username
