@@ -1,3 +1,4 @@
+[README.md](https://github.com/user-attachments/files/28957437/README.md)
 # Secure Chat App Simulation
 
 ## Overview
@@ -83,7 +84,7 @@ Leeds Trinity Repo: cs-ltu.github.io
 
 * Socket.IO: https://socket.io
 * Python WebSockets Documentation: https://websockets.readthedocs.io/en/stable/
-* Chat App Tutorial: https://www.freecodecamp.org/news/build-a-realtime-chat-app-with-node-express-socket-io-and-heroku/
+* Chat App Design Tutorial: https://youtu.be/_sxoqRIbW0c?si=5bglJcfZTF9kgJ5L
 * Cryptography Chat Example: https://github.com/HarshVaragiya/Chat-Application
 
 ---
