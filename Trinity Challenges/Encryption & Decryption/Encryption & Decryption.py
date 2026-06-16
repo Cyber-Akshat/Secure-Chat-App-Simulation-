@@ -24,7 +24,7 @@ generate_key()
 key = load_key()
 
 encrypt = encrypt_message("I Love Maths", key)
-print("Encrypted: " + encrypt.decode())
+print("Encrypted: " + encrypt)
 
 decrypted = decrypt_message(encrypt, key)
 print("Decrypted: " + decrypted)
