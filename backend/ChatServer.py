@@ -4,14 +4,15 @@ from fastapi import WebSocket, WebSocketDisconnect
 
 class ChatServer:
     def __init__(self):
-        # Replaces Deno's Map. Maps username (str) -> WebSocket connection
+        # Source for who's currently online
         self.connected_clients: dict[str, WebSocket] = {}
 
     async def handle_connection(self, websocket: WebSocket):
-        # Extract query parameters: ctx.request.url.searchParams.get("username")
+        # Asks user for username
         username = websocket.query_params.get("username")
 
         if not username:
+            # checks if user entered anything as a username
             await websocket.close(code=1003, reason="Username is required")
             return
 
@@ -20,11 +21,9 @@ class ChatServer:
             await websocket.close(code=1008, reason=f"Username {username} is already taken")
             return
 
-        # In FastAPI, you must explicitly accept the handshake upgrade
+        # With FastAPI, you must manually accept the handshake
         await websocket.accept()
 
-        # Dynamically add the username attribute to the socket object if needed,
-        # though mapping via dict keys is typically enough.
         self.connected_clients[username] = websocket
         print(f"New client connected: {username}")
 
@@ -57,7 +56,7 @@ class ChatServer:
         })
 
     async def client_disconnected(self, username: str):
-        # Remove from active clients dict
+        # Remove from active clients dictionary
         if username in self.connected_clients:
             del self.connected_clients[username]
 
@@ -72,10 +71,10 @@ class ChatServer:
     async def broadcast(self, message: dict):
         message_string = json.dumps(message)
 
-        # Iterate over a list copy of values to avoid runtime dictionary mutation errors
+        # Iterate over a list copy of values to avoid runtime dictionary errors
         for client in list(self.connected_clients.values()):
             try:
                 await client.send_text(message_string)
             except Exception:
-                # Catch failures if a specific client connection went stale unexpectedly
+                # Catch failures if a specific client connection went dead unexpectedly
                 pass
