@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="style.css" />
     <script defer type="module" src="app.js"></script>
   </head>
-
   <body>
     <header title="Welcome to the main chat room!">
       <h1>🗨 Hi Chat</h1>
@@ -22,17 +21,13 @@
         <div id="conversation">
           <div style="text-align: center;">
             <h2 style="color: #333d47; margin-bottom: 8px;">Welcome to Hi Chat</h2>
-            <p style="color: #8c96a3; font-size: 0.95rem;">Select a user from the sidebar to start a conversation.</p>
+            <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below down below down below.</p>
           </div>
         </div>
 
         <div id="typing-indicator"></div>
 
         <form id="form">
-          <input type="file" id="file-input" style="display: none;" />
-
-          <button type="button" id="attach-btn" title="Attach a file">📎</button>
-
           <input
             type="text"
             id="data"
@@ -40,26 +35,16 @@
             autocomplete="off"
             title="Press Enter or click Send to submit"
           />
-
-          <button type="submit" id="send" title="Send your encrypted message instantly">Send ᯓ✉︎</button>
+          <button type="submit" id="send">Send ᯓ✉︎</button>
         </form>
       </main>
     </div>
-
-    <template id="user">
-      <li></li>
-    </template>
 
     <template id="message">
       <div class="message-row">
         <div class="message-bubble">
           <span class="sender-name"></span>
           <p class="message-text"></p>
-
-          <div class="file-attachment-container" style="display: none; margin-top: 6px;">
-            <img class="attached-image" style="display: none; max-width: 250px; border-radius: 6px;" alt="Attached Image" />
-            <a class="attached-file-link" style="display: none; color: #00a884; font-weight: bold; text-decoration: underline; font-size: 0.9rem;" target="_blank"></a>
-          </div>
         </div>
       </div>
     </template>
