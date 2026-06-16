@@ -25,8 +25,8 @@ async def websocket_endpoint(websocket: WebSocket):
 # directly - if not, the file falls back to public/index.html
 @app.get("/{catchall:path}")
 async def serve_files(catchall: str):
-    # Replicating Oak's context.send() fallback behavior
-    file_path = os.path.join(os.getcwd(), catchall)
+    # Look for the file falls back inside the public directory
+    file_path = os.path.join(os.getcwd(), "public" ,catchall)
 
     # If the exact requested file exists, serve it
     if catchall and os.path.isfile(file_path):
