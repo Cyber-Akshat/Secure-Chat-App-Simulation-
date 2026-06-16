@@ -48,12 +48,19 @@ class ChatServer:
         """Manages the full lifecycle of a single user connecting via WebSockets."""
         username = websocket.query_params.get("username")
 
-        # Validation Check 1: Did they provide a username?
+        import re
+
+        # Validation Check 1: Reject usernames containing HTML or illegal characters
+        if not re.match(r'^[a-zA-Z0-9_\-]{1,30}$', username):
+            await websocket.close(code=1003, reason="Username contains invalid characters.")
+            return
+
+        # Validation Check 2: Did they provide a username?
         if not username:
             await websocket.close(code=1003, reason="Username is required.")
             return
 
-        # Validation Check 2: Is someone already logged into this username right now?
+        # Validation Check 3: Is someone already logged into this username right now?
         if username in self.connected_clients:
             await websocket.close(code=1008, reason=f"Username '{username}' is already online.")
             return

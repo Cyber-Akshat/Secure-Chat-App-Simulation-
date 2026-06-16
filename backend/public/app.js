@@ -3,7 +3,16 @@
 // ============================================================================
 
 // 1. Prompt the user for a username immediately upon landing
-const myUsername = prompt("Enter your username for Hi Chat:") || "User_" + Math.floor(Math.random() * 1000);
+// 1. Prompt the user for a username and strip any HTML tags / special characters
+function sanitizeUsername(raw) {
+  // Remove any HTML tags entirely
+  const noTags = raw.replace(/<[^>]*>/g, "");
+  // Allow only alphanumeric characters, underscores, and hyphens (max 30 chars)
+  return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
+}
+
+const rawInput = prompt("Enter your username for Hi Chat:") ?? "";
+const myUsername = sanitizeUsername(rawInput) || "User_" + Math.floor(Math.random() * 1000);
 
 // 2. Connect to your FastAPI Python endpoint passing the username as a query param
 const socket = new WebSocket(`ws://localhost:8080/start_web_socket?username=${encodeURIComponent(myUsername)}`);
