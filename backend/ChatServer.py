@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from fastapi import WebSocket, WebSocketDisconnect
 
 
@@ -19,45 +20,48 @@ class ChatServer:
         if not os.path.exists(self.json_file_path):
             with open(self.json_file_path, "w") as file:
                 json.dump([], file, indent=4)
-            print("Created a fresh users.json file!")
+            print("📁 Created a fresh users.json file!")
         else:
-            print("Found existing users.json file.")
+            print("📁 Found existing users.json file.")
 
     def save_user_to_json(self, username: str):
-        """Reads the JSON file, adds the new username if unique, and saves it back."""
+        """Reads the JSON file, adds the new username if unique, and saves it back atomically."""
         try:
-            # 1. Open and read the current list of users
-            with open(self.json_file_path, "r") as file:
-                registered_users = json.load(file)
+            if os.path.exists(self.json_file_path):
+                with open(self.json_file_path, "r") as file:
+                    registered_users = json.load(file)
+            else:
+                registered_users = []
 
-            # 2. Add the username if it isn't already in the list
             if username not in registered_users:
                 registered_users.append(username)
 
-                # 3. Write the updated list back to the file with clean text indents
-                with open(self.json_file_path, "w") as file:
-                    json.dump(registered_users, file, indent=4)
-                print(f"Physically saved '{username}' into users.json!")
+                # Write to a temporary file first to prevent mid-crash file corruption
+                temp_file_path = self.json_file_path + ".tmp"
+                with open(temp_file_path, "w") as temp_file:
+                    json.dump(registered_users, temp_file, indent=4)
+
+                # Swap the temporary file over to the real file name instantly
+                os.replace(temp_file_path, self.json_file_path)
+                print(f"📝 Physically saved '{username}' into users.json!")
             else:
-                print(f"User '{username}' was already registered in users.json.")
+                print(f"ℹ️ User '{username}' was already registered in users.json.")
 
         except Exception as e:
-            print(f"Error writing to JSON file: {e}")
+            print(f"❌ Error writing to JSON file: {e}")
 
     async def handle_connection(self, websocket: WebSocket):
         """Manages the full lifecycle of a single user connecting via WebSockets."""
         username = websocket.query_params.get("username")
 
-        import re
-
-        # Validation Check 1: Reject usernames containing HTML or illegal characters
-        if not re.match(r'^[a-zA-Z0-9_\-]{1,30}$', username):
-            await websocket.close(code=1003, reason="Username contains invalid characters.")
-            return
-
-        # Validation Check 2: Did they provide a username?
+        # Validation Check 1: Did they provide a username?
         if not username:
             await websocket.close(code=1003, reason="Username is required.")
+            return
+
+        # Validation Check 2: Server-side validation filtering out unsafe structures
+        if not re.match(r"^[a-zA-Z0-9_ -]{1,30}$", username):
+            await websocket.close(code=1008, reason="Invalid username characters or length.")
             return
 
         # Validation Check 3: Is someone already logged into this username right now?
@@ -73,7 +77,7 @@ class ChatServer:
 
         # Map the active WebSocket stream into our active global tracking list
         self.connected_clients[username] = websocket
-        print(f"Client connected: {username}")
+        print(f"🟢 Client connected: {username}")
 
         # Broadcast the new online user list out to all active panels
         await self.broadcast_usernames()
@@ -89,7 +93,7 @@ class ChatServer:
             await self.client_disconnected(username)
 
     async def receive_message(self, username: str, raw_message: str):
-        """Parses and distributes incoming chat messages."""
+        """Parses and distributes incoming chat messages and file attachments."""
         try:
             data = json.loads(raw_message)
         except json.JSONDecodeError:
@@ -98,11 +102,14 @@ class ChatServer:
         if data.get("event") != "send-message":
             return
 
-        # Broadcast the sanitized text out to every single person in the chat
+        # Broadcast the text message along with all relevant base64 attachment attributes
         await self.broadcast({
             "event": "send-message",
             "username": username,
             "message": data.get("message"),
+            "fileData": data.get("fileData"),
+            "fileName": data.get("fileName"),
+            "fileType": data.get("fileType")
         })
 
     async def client_disconnected(self, username: str):
@@ -110,7 +117,7 @@ class ChatServer:
         if username in self.connected_clients:
             del self.connected_clients[username]
 
-        print(f"Client disconnected: {username}")
+        print(f"🔴 Client disconnected: {username}")
         # Refresh everyone's active sidebar list panel
         await self.broadcast_usernames()
 

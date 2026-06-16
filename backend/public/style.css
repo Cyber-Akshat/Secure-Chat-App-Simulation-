@@ -273,3 +273,17 @@ main#content {
   flex-shrink: 0;
   margin-left: auto; /* Solid safety fallback to lock the dot on the right margin */
 }
+
+#attach-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#attach-btn:hover {
+  transform: scale(1.1);
+}
