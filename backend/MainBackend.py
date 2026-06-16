@@ -2,6 +2,7 @@ import os
 import uvicorn
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse
+from ChatServer import ChatServer
 
 # Assuming you have a chat_server.py file with a ChatServer class
 from ChatServer import ChatServer
