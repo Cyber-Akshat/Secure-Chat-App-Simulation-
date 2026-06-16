@@ -1,104 +1,97 @@
 import json
-import sqlite3
 import os
 from fastapi import WebSocket, WebSocketDisconnect
-from pyglet.window.key import PRINT
 
 
 class ChatServer:
     def __init__(self):
-        # Source for who's currently online
+        # Dictionary structure tracking live connected users: { "username": WebSocket }
         self.connected_clients: dict[str, WebSocket] = {}
 
-        #Initialise the SQLite Database File
-        self.db_path = os.path.join(os.getcwd(), "chat_messages.db")
-        self.init_database()
+        # Define the path for your human-readable users.json storage file
+        self.json_file_path = os.path.join(os.getcwd(), "users.json")
 
-    def init_database(self):
-        #Creates the database file and the user table tracking unique username
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                username INTEGER PRIMARY KEY,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        conn.commit()
-        conn.close()
-        print("SQLite Database created!")
+        # Automatically make sure the JSON file exists on boot
+        self.init_json_file()
 
-    def save_user(self, username:str):
-        # Saves a username into the database if it doesn't already exist
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT OR IGNORE INTO users (username) VALUES (?)
-        ''', (username,))
-        conn.commit()
-        conn.close()
-        print(f"SQL Checked/Saved User: {username}")
+    def init_json_file(self):
+        """Creates the users.json file with an empty list if it doesn't exist yet."""
+        if not os.path.exists(self.json_file_path):
+            with open(self.json_file_path, "w") as file:
+                json.dump([], file, indent=4)
+            print("📁 Created a fresh users.json file!")
+        else:
+            print("📁 Found existing users.json file.")
 
-    async def handle_connection(self, websocket: WebSocket):
-        username = websocket.query_params.get("username")
+    def save_user_to_json(self, username: str):
+        """Reads the JSON file, adds the new username if unique, and saves it back."""
+        try:
+            # 1. Open and read the current list of users
+            with open(self.json_file_path, "r") as file:
+                registered_users = json.load(file)
 
-        if not username:
-            await websocket.close(code=1003, reason="Username is required")
-            return
-        await websocket.accept()
+            # 2. Add the username if it isn't already in the list
+            if username not in registered_users:
+                registered_users.append(username)
 
-        #Saves the username permanently into the SQL
-        self.save_user(username)
+                # 3. Write the updated list back to the file with clean text indents
+                with open(self.json_file_path, "w") as file:
+                    json.dump(registered_users, file, indent=4)
+                print(f"📝 Physically saved '{username}' into users.json!")
+            else:
+                print(f"ℹ️ User '{username}' was already registered in users.json.")
 
-        self.connected_clients[username] = websocket
-        print(f"New Live connection: {username}")
-
-
-        # Broadcast the updated online users list
-        await self.broadcast_usernames()
+        except Exception as e:
+            print(f"❌ Error writing to JSON file: {e}")
 
     async def handle_connection(self, websocket: WebSocket):
-        # Asks user for username
+        """Manages the full lifecycle of a single user connecting via WebSockets."""
         username = websocket.query_params.get("username")
 
+        # Validation Check 1: Did they provide a username?
         if not username:
-            # checks if user entered anything as a username
-            await websocket.close(code=1003, reason="Username is required")
+            await websocket.close(code=1003, reason="Username is required.")
             return
 
-        # Check if username is already taken
+        # Validation Check 2: Is someone already logged into this username right now?
         if username in self.connected_clients:
-            await websocket.close(code=1008, reason=f"Username {username} is already taken")
+            await websocket.close(code=1008, reason=f"Username '{username}' is already online.")
             return
 
-        # With FastAPI, you must manually accept the handshake
+        # Accept the connection handshake
         await websocket.accept()
 
-        self.connected_clients[username] = websocket
-        print(f"New client connected: {username}")
+        # Physically save the username into your text-based users.json file
+        self.save_user_to_json(username)
 
-        # Replicates socket.onopen
+        # Map the active WebSocket stream into our active global tracking list
+        self.connected_clients[username] = websocket
+        print(f"🟢 Client connected: {username}")
+
+        # Broadcast the new online user list out to all active panels
         await self.broadcast_usernames()
 
         try:
-            # Replicates socket.onmessage continuous listening loop
+            # Main event listening loop keeping the socket connection open
             while True:
                 raw_message = await websocket.receive_text()
                 await self.receive_message(username, raw_message)
 
         except WebSocketDisconnect:
-            # Replicates socket.onclose
+            # Gracefully clear out profiles if their browser tab closes
             await self.client_disconnected(username)
 
     async def receive_message(self, username: str, raw_message: str):
+        """Parses and distributes incoming chat messages."""
         try:
             data = json.loads(raw_message)
         except json.JSONDecodeError:
-            return  # Ignore malformed JSON
+            return  # Safely ignore bad text streams
 
         if data.get("event") != "send-message":
             return
 
+        # Broadcast the sanitized text out to every single person in the chat
         await self.broadcast({
             "event": "send-message",
             "username": username,
@@ -106,25 +99,29 @@ class ChatServer:
         })
 
     async def client_disconnected(self, username: str):
-        # Remove from active clients dictionary
+        """Removes user from the active memory collection on drop."""
         if username in self.connected_clients:
             del self.connected_clients[username]
 
+        print(f"🔴 Client disconnected: {username}")
+        # Refresh everyone's active sidebar list panel
         await self.broadcast_usernames()
-        print(f"Client {username} disconnected")
 
     async def broadcast_usernames(self):
+        """Compiles and broadcasts the live array list of online users."""
         usernames = list(self.connected_clients.keys())
-        await self.broadcast({"event": "update-users", "usernames": usernames})
-        print("Sent username list:", json.dumps(usernames))
+        await self.broadcast({
+            "event": "update-users",
+            "usernames": usernames
+        })
 
     async def broadcast(self, message: dict):
+        """Utility wrapper safely shipping JSON text strings out to all listeners."""
         message_string = json.dumps(message)
 
-        # Iterate over a list copy of values to avoid runtime dictionary errors
-        for client in list(self.connected_clients.values()):
+        for client_ws in list(self.connected_clients.values()):
             try:
-                await client.send_text(message_string)
+                await client_ws.send_text(message_string)
             except Exception:
-                # Catch failures if a specific client connection went dead unexpectedly
+                # Catch closed socket write exceptions safely to keep the server running
                 pass
