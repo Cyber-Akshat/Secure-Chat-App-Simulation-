@@ -3,13 +3,80 @@ function sanitizeUsername(raw) {
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
 
-
 const rawInput = prompt("Enter your username for Hi Chat:") ?? "";
 const myUsername = sanitizeUsername(rawInput) || "User_" + Math.floor(Math.random() * 1000);
 
+// ============================================================================
+// 🔒 END-TO-END ENCRYPTION (AES-GCM ENGINE)
+// ============================================================================
+// A basic 256-bit passphrase key used by everyone in this specific room
+const ENCRYPTION_PASSPHRASE = "SuperSecretChatRoomKey123!";
+
+async function getEncryptionKey() {
+  const enc = new TextEncoder();
+  const keyMaterial = await window.crypto.subtle.importKey(
+    "raw",
+    enc.encode(ENCRYPTION_PASSPHRASE.padEnd(32, "0").slice(0, 32)),
+    { name: "AES-GCM" },
+    false,
+    ["encrypt", "decrypt"]
+  );
+  return keyMaterial;
+}
+
+// Encrypts plain text into a secure hexadecimal string
+async function encryptText(plainText) {
+  if (!plainText) return "";
+  try {
+    const key = await getEncryptionKey();
+    const enc = new TextEncoder();
+    const iv = window.crypto.getRandomValues(new Uint8Array(12)); // Initialization Vector
+
+    const encrypted = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      enc.encode(plainText)
+    );
+
+    // Combine IV and Encrypted data into a single string to send over network
+    const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, "0")).join("");
+    const dataHex = Array.from(new Uint8Array(encrypted)).map(b => b.toString(16).padStart(2, "0")).join("");
+    return `${ivHex}:${dataHex}`;
+  } catch (err) {
+    console.error("Encryption error:", err);
+    return "[Encryption Failed]";
+  }
+}
+
+// Decrypts incoming hexadecimal strings back into plain text
+async function decryptText(encryptedPayload) {
+  if (!encryptedPayload || !encryptedPayload.includes(":")) return encryptedPayload;
+  try {
+    const key = await getEncryptionKey();
+    const [ivHex, dataHex] = encryptedPayload.split(":");
+
+    const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const encryptedData = new Uint8Array(dataHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encryptedData
+    );
+
+    return new TextDecoder().decode(decrypted);
+  } catch (err) {
+    console.warn("Could not decrypt message (key mismatch or unencrypted format).");
+    return "[Encrypted Message]";
+  }
+}
+
+// ============================================================================
+// WEB_SOCKET EVENT LOOPS
+// ============================================================================
 const socket = new WebSocket(`ws://localhost:8080/start_web_socket?username=${encodeURIComponent(myUsername)}`);
 
-socket.onmessage = function(event) {
+socket.onmessage = async function(event) {
   try {
     const data = JSON.parse(event.data);
 
@@ -18,7 +85,10 @@ socket.onmessage = function(event) {
     }
     else if (data.event === "send-message") {
       const senderDisplay = (data.username === myUsername) ? "You" : data.username;
-      addMessageToChat(senderDisplay, data.message);
+
+      // 🔓 Decrypt the text before putting it on the screen
+      const clearTextMessage = await decryptText(data.message);
+      addMessageToChat(senderDisplay, clearTextMessage, data.gifUrl);
     }
   } catch (err) {
     console.error("Error parsing incoming socket JSON payload:", err);
@@ -54,7 +124,7 @@ function updateUserList(usernames) {
     statusDot.style.width = "8px";
     statusDot.style.height = "8px";
     statusDot.style.backgroundColor = "#10b981";
-    statusDot.style.borderRadius = "50%;"
+    statusDot.style.borderRadius = "50%";
 
     listItem.appendChild(avatarImg);
     listItem.appendChild(nameSpan);
@@ -63,7 +133,7 @@ function updateUserList(usernames) {
   }
 }
 
-function addMessageToChat(username, messageText) {
+function addMessageToChat(username, messageText, gifUrl = null) {
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
@@ -72,9 +142,17 @@ function addMessageToChat(username, messageText) {
   const rowDiv = messageClone.querySelector(".message-row");
   const nameSpan = messageClone.querySelector(".sender-name");
   const textParagraph = messageClone.querySelector(".message-text");
+  const gifImage = messageClone.querySelector(".message-gif");
 
   nameSpan.textContent = username;
-  textParagraph.textContent = messageText;
+
+  if (gifUrl) {
+    gifImage.src = gifUrl;
+    gifImage.style.display = "block";
+    textParagraph.style.display = messageText ? "block" : "none";
+  }
+
+  textParagraph.textContent = messageText || "";
 
   if (username === "You") {
     rowDiv.classList.add("sent");
@@ -90,19 +168,104 @@ function addMessageToChat(username, messageText) {
   conversationBox.scrollTop = conversationBox.scrollHeight;
 }
 
+// ============================================================================
+// GIF DRAWER & EVENTS
+// ============================================================================
+const gifToggleBtn = document.getElementById("gif-toggle-btn");
+const gifDrawer = document.getElementById("gif-drawer");
+const closeGifBtn = document.getElementById("close-gif-btn");
+const gifGrid = document.getElementById("gif-grid");
+
+gifToggleBtn.addEventListener("click", () => {
+  if (gifDrawer.style.display === "none") {
+    gifDrawer.style.display = "flex";
+    loadOpenAccessGifs();
+  } else {
+    gifDrawer.style.display = "none";
+  }
+});
+
+closeGifBtn.addEventListener("click", () => {
+  gifDrawer.style.display = "none";
+});
+
+function loadOpenAccessGifs() {
+  gifGrid.replaceChildren();
+
+  const stableOpenUrls = [
+    "https://media.giphy.com/media/26vUxAmZGmBUNSTdK/giphy.gif",
+    "https://media.giphy.com/media/l2QHVEeTInp89snCg/giphy.gif",
+    "https://media.giphy.com/media/tXhBA26kiVzy4mH75A/giphy.gif",
+    "https://media.giphy.com/media/HteV6g0QTNqs6OPv2O/giphy.gif",
+    "https://media.giphy.com/media/3o7abKhOpu0N6vu3io/giphy.gif",
+    "https://media.giphy.com/media/l41lUjZ74_1D6bM7W/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3NidHd2ZHp5cnVqMWFhM2J4eXJmY2swNWhwczNscXZ6dzBndDZpdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9GIFGeuN56Yv340698/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3FmNTg5NWhwYTNwOXBvazB2ODZ6NmhldWZ0N3YxMDM3MzZsMmEydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cuPo4MCoM7du8/giphy.gif"
+  ];
+
+  stableOpenUrls.forEach(url => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.style.width = "100%";
+    img.style.height = "90px";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "4px";
+    img.style.cursor = "pointer";
+
+    img.addEventListener("click", () => {
+      sendGifMessage(url);
+      gifDrawer.style.display = "none";
+    });
+    gifGrid.appendChild(img);
+  });
+}
+
+function sendGifMessage(url) {
+  if (socket.readyState === WebSocket.OPEN) {
+    const payload = {
+      event: "send-message",
+      message: "",
+      gifUrl: url
+    };
+    socket.send(JSON.stringify(payload));
+  }
+}
+
+// ============================================================================
+// TRANSMISSION SUBMISSIONS (CORRECTED ASYNC PIPELINE)
+// ============================================================================
 const messageInput = document.getElementById("data");
 const chatForm = document.getElementById("form");
 
-chatForm.addEventListener("submit", (event) => {
+chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const messageText = messageInput.value.trim();
 
   if (messageText !== "" && socket.readyState === WebSocket.OPEN) {
-    const payload = {
-      event: "send-message",
-      message: messageText
-    };
-    socket.send(JSON.stringify(payload));
-    messageInput.value = "";
+    try {
+      // 1. Force execution to pause until encryption finishes scrambling the text
+      const encryptedPayload = await encryptText(messageText);
+
+      // Guard check to make sure encryption yielded valid data
+      if (!encryptedPayload) {
+        console.error("Encryption returned an empty string. Aborting send.");
+        return;
+      }
+
+      // 2. Package the scrambled "ivHex:dataHex" payload string
+      const payload = {
+        event: "send-message",
+        message: encryptedPayload,
+        gifUrl: null
+      };
+
+      // 3. Dispatch data straight over WebSocket channel
+      socket.send(JSON.stringify(payload));
+      messageInput.value = "";
+
+    } catch (err) {
+      console.error("Critical error during execution submission flow:", err);
+    }
   }
 });
+

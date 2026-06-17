@@ -1,9 +1,20 @@
 import json
+import os
+import asyncio
 from fastapi import WebSocket, WebSocketDisconnect
+
 
 class ChatServer:
     def __init__(self):
         self.connected_clients: dict[str, WebSocket] = {}
+        # Thread/Async lock to prevent data corruption during simultaneous writes
+        self.file_lock = asyncio.Lock()
+        self.storage_file = "Encryptedmsg.json"
+
+        # Initialize the file with an empty list if it doesn't exist yet
+        if not os.path.exists(self.storage_file):
+            with open(self.storage_file, "w", encoding="utf-8") as f:
+                json.dump([], f)
 
     async def handle_connection(self, websocket: WebSocket):
         username = websocket.query_params.get("username")
@@ -38,12 +49,41 @@ class ChatServer:
         if data.get("event") != "send-message":
             return
 
+        message_payload = data.get("message", "")
+        gif_payload = data.get("gifUrl")
+
+        # 💾 Store the encrypted message data locally on the server disk
+        await self.save_to_json_file(username, message_payload, gif_payload)
+
+        # Forward the exact encrypted data out to everyone else
         await self.broadcast({
             "event": "send-message",
             "username": username,
-            "message": data.get("message"),
+            "message": message_payload,
+            "gifUrl": gif_payload
         })
 
+    async def save_to_json_file(self, username: str, encrypted_text: str, gif_url: str or None):
+        """Safely appends the message record into Encryptedmsg.json."""
+        async with self.file_lock:
+            try:
+                # 1. Read existing records
+                with open(self.storage_file, "r", encoding="utf-8") as f:
+                    logs = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                logs = []
+
+            # 2. Structure the log entry
+            new_entry = {
+                "sender": username,
+                "encrypted_message": encrypted_text,
+                "gif_url": gif_url
+            }
+            logs.append(new_entry)
+
+            # 3. Write it back to the disk
+            with open(self.storage_file, "w", encoding="utf-8") as f:
+                json.dump(logs, f, indent=4, ensure_ascii=False)
 
     async def client_disconnected(self, username: str):
         if username in self.connected_clients:
