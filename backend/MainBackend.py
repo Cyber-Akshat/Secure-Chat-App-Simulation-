@@ -21,7 +21,7 @@ async def serve_files(catchall: str):
         return FileResponse(file_path)
 
     return FileResponse(os.path.join(os.getcwd(), "public", "index.html"))
-
+#running the server
 
 if __name__ == "__main__":
     print(f"Server running at http://localhost:{port}")

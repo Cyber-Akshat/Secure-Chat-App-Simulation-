@@ -201,7 +201,7 @@ function loadOpenAccessGifs() {
     "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif",
     "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWtkZXV6NTg4aGZubDlwdTJlOHVibjVtaWFmYm1oMHZjY3ZkMWhuZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Irb20yXtA2QStkUnrE/giphy.gif",
     "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif"
-  ];
+  ]; //gifs
 
   stableOpenUrls.forEach(url => {
     const img = document.createElement("img");
