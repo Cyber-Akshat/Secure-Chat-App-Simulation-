@@ -18,5 +18,20 @@
         "sender": "Esha",
         "encrypted_message": "hi",
         "gif_url": null
+    },
+    {
+        "sender": "Akshat",
+        "encrypted_message": "",
+        "gif_url": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif"
+    },
+    {
+        "sender": "Akshat",
+        "encrypted_message": "",
+        "gif_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExa284amJpOTY2cGtqdG96MWpyb3Ntc2t4bWVzMWhsaHg3dDhjZ3FuOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AVP0kPZXRUxjRxCfng/giphy.gif"
+    },
+    {
+        "sender": "Akshat",
+        "encrypted_message": "",
+        "gif_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif"
     }
 ]

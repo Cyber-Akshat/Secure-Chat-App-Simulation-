@@ -193,14 +193,14 @@ function loadOpenAccessGifs() {
   gifGrid.replaceChildren();
 
   const stableOpenUrls = [
-    "https://media.giphy.com/media/26vUxAmZGmBUNSTdK/giphy.gif",
-    "https://media.giphy.com/media/l2QHVEeTInp89snCg/giphy.gif",
-    "https://media.giphy.com/media/tXhBA26kiVzy4mH75A/giphy.gif",
-    "https://media.giphy.com/media/HteV6g0QTNqs6OPv2O/giphy.gif",
-    "https://media.giphy.com/media/3o7abKhOpu0N6vu3io/giphy.gif",
-    "https://media.giphy.com/media/l41lUjZ74_1D6bM7W/giphy.gif",
-    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3NidHd2ZHp5cnVqMWFhM2J4eXJmY2swNWhwczNscXZ6dzBndDZpdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9GIFGeuN56Yv340698/giphy.gif",
-    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3FmNTg5NWhwYTNwOXBvazB2ODZ6NmhldWZ0N3YxMDM3MzZsMmEydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cuPo4MCoM7du8/giphy.gif"
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJpZHhkaWJ1cGtoNTR3dDV2a3I3dnI3YmczOXRpZm5tOGtza3QzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OuQmhmAAdJFLi/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExa284amJpOTY2cGtqdG96MWpyb3Ntc2t4bWVzMWhsaHg3dDhjZ3FuOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AVP0kPZXRUxjRxCfng/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHZ3ZnZtcnlmN3ViYXphbmRnY2dsZ3JiNTRjdDliNHUwdTFsZ2MwbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zrxazUScjhxo4/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWtkZXV6NTg4aGZubDlwdTJlOHVibjVtaWFmYm1oMHZjY3ZkMWhuZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Irb20yXtA2QStkUnrE/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif"
   ];
 
   stableOpenUrls.forEach(url => {
