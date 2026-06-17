@@ -200,7 +200,10 @@ function loadOpenAccessGifs() {
     "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHZ3ZnZtcnlmN3ViYXphbmRnY2dsZ3JiNTRjdDliNHUwdTFsZ2MwbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zrxazUScjhxo4/giphy.gif",
     "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif",
     "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWtkZXV6NTg4aGZubDlwdTJlOHVibjVtaWFmYm1oMHZjY3ZkMWhuZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Irb20yXtA2QStkUnrE/giphy.gif",
-    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif"
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3Nzd3azA1NDB3YjhiMzlndWZtNGN6MTllem0xMmI1Z25za3dwZGx0aSZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/acgXBmnZjOS0lYImih/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3E1YjUyaHU1b3AwOHdlcnBlamVqOHlzMmNod3V5eWV2ZnV0MmtkZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kNpNw0eB1w4qDYA7hS/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2RiNmtrc254OGUyNHVtcHBoNWVscWh2ZzBodmJ3ZmRiYmQzMGptZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/45Ichy6GhmxZSdgxzC/giphy.gif"
   ]; //gifs
 
   stableOpenUrls.forEach(url => {
