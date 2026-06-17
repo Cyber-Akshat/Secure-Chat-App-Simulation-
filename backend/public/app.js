@@ -76,31 +76,6 @@ async function decryptText(encryptedPayload) {
   }
 }
 
-/**
- * Decrypts incoming payloads back into plain text or a clickable GIF URL link
- */
-async function decryptText(encryptedPayload) {
-  if (!encryptedPayload || !encryptedPayload.includes(":")) return encryptedPayload;
-  try {
-    const key = await getEncryptionKey();
-    const [ivBase64, dataBase64] = encryptedPayload.split(":");
-
-    const iv = new Uint8Array(atob(ivBase64).split("").map(c => c.charCodeAt(0)));
-    const encryptedData = new Uint8Array(atob(dataBase64).split("").map(c => c.charCodeAt(0)));
-
-    const decrypted = await window.crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: iv },
-      key,
-      encryptedData
-    );
-
-    return new TextDecoder().decode(decrypted);
-  } catch (err) {
-    console.warn("Could not decrypt payload.");
-    return "[Encrypted Message]";
-  }
-}
-
 // ============================================================================
 // WEB_SOCKET EVENT LOOPS
 // ============================================================================
