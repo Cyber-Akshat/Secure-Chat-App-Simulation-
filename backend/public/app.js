@@ -7,30 +7,33 @@ const rawInput = prompt("Enter your username for Hi Chat:") ?? "";
 const myUsername = sanitizeUsername(rawInput) || "User_" + Math.floor(Math.random() * 1000);
 
 // ============================================================================
-// 🔒 END-TO-END ENCRYPTION (AES-GCM ENGINE)
+// 🔒 SECURE END-TO-END ENCRYPTION (AES-GCM BASE64 ENGINE)
 // ============================================================================
-// A basic 256-bit passphrase key used by everyone in this specific room
+
+// SECURITY FIX: In a real app, users would input this dynamically, not hardcoded!
 const ENCRYPTION_PASSPHRASE = "SuperSecretChatRoomKey123!";
 
 async function getEncryptionKey() {
   const enc = new TextEncoder();
-  const keyMaterial = await window.crypto.subtle.importKey(
+  // We hash the password to ensure it is exactly 32 bytes long safely
+  const hashedKeyMaterial = await window.crypto.subtle.digest("SHA-256", enc.encode(ENCRYPTION_PASSPHRASE));
+
+  return await window.crypto.subtle.importKey(
     "raw",
-    enc.encode(ENCRYPTION_PASSPHRASE.padEnd(32, "0").slice(0, 32)),
+    hashedKeyMaterial,
     { name: "AES-GCM" },
     false,
     ["encrypt", "decrypt"]
   );
-  return keyMaterial;
 }
 
-// Encrypts plain text into a secure hexadecimal string
+// Encrypts plain text into a secure Base64 string
 async function encryptText(plainText) {
   if (!plainText) return "";
   try {
     const key = await getEncryptionKey();
     const enc = new TextEncoder();
-    const iv = window.crypto.getRandomValues(new Uint8Array(12)); // Initialization Vector
+    const iv = window.crypto.getRandomValues(new Uint8Array(12)); // Secure Initialization Vector
 
     const encrypted = await window.crypto.subtle.encrypt(
       { name: "AES-GCM", iv: iv },
@@ -38,25 +41,27 @@ async function encryptText(plainText) {
       enc.encode(plainText)
     );
 
-    // Combine IV and Encrypted data into a single string to send over network
-    const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, "0")).join("");
-    const dataHex = Array.from(new Uint8Array(encrypted)).map(b => b.toString(16).padStart(2, "0")).join("");
-    return `${ivHex}:${dataHex}`;
+    // FIX: Using standardized Base64 instead of unpredictable hex loops
+    const ivBase64 = btoa(String.fromCharCode(...iv));
+    const dataBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+
+    return `${ivBase64}:${dataBase64}`;
   } catch (err) {
     console.error("Encryption error:", err);
     return "[Encryption Failed]";
   }
 }
 
-// Decrypts incoming hexadecimal strings back into plain text
+// Decrypts incoming Base64 strings back into plain text
 async function decryptText(encryptedPayload) {
   if (!encryptedPayload || !encryptedPayload.includes(":")) return encryptedPayload;
   try {
     const key = await getEncryptionKey();
-    const [ivHex, dataHex] = encryptedPayload.split(":");
+    const [ivBase64, dataBase64] = encryptedPayload.split(":");
 
-    const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-    const encryptedData = new Uint8Array(dataHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    // Decode Base64 back into raw byte numbers
+    const iv = new Uint8Array(atob(ivBase64).split("").map(c => c.charCodeAt(0)));
+    const encryptedData = new Uint8Array(atob(dataBase64).split("").map(c => c.charCodeAt(0)));
 
     const decrypted = await window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv: iv },
@@ -66,7 +71,32 @@ async function decryptText(encryptedPayload) {
 
     return new TextDecoder().decode(decrypted);
   } catch (err) {
-    console.warn("Could not decrypt message (key mismatch or unencrypted format).");
+    console.warn("Could not decrypt message (key mismatch or format error).");
+    return "[Encrypted Message]";
+  }
+}
+
+/**
+ * Decrypts incoming payloads back into plain text or a clickable GIF URL link
+ */
+async function decryptText(encryptedPayload) {
+  if (!encryptedPayload || !encryptedPayload.includes(":")) return encryptedPayload;
+  try {
+    const key = await getEncryptionKey();
+    const [ivBase64, dataBase64] = encryptedPayload.split(":");
+
+    const iv = new Uint8Array(atob(ivBase64).split("").map(c => c.charCodeAt(0)));
+    const encryptedData = new Uint8Array(atob(dataBase64).split("").map(c => c.charCodeAt(0)));
+
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encryptedData
+    );
+
+    return new TextDecoder().decode(decrypted);
+  } catch (err) {
+    console.warn("Could not decrypt payload.");
     return "[Encrypted Message]";
   }
 }
