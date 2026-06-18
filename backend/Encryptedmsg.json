@@ -37,5 +37,141 @@
         "encrypted_message": "",
         "gif_url": null,
         "is_deleted": true
+    },
+    {
+        "id": "fc2571d29a8a8c09",
+        "sender": "aks",
+        "recipient": "mamakaash",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "2e09a00f2816d63b",
+        "sender": "aks",
+        "recipient": "mamakaash",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "38f8dbac82c61d56",
+        "sender": "aks",
+        "recipient": "mamakaash",
+        "encrypted_message": "i7ud2iuM2V/C3IK1:tuVVJhSV+r+uHQ/M5+2EziLotjHiHFN7nzev",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "83224ad6bc3537ef",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "rV0+nuaipWv0J+wq:d/SfkxkK6Ybf38vweFU0FpVA",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "5a5be7d5a3cc3da2",
+        "sender": "aks",
+        "recipient": "Avi",
+        "encrypted_message": "2O7Gp3P6vghRjE8i:pImMEmoOcRgmOFcWlDKXfzNVcj5otE0=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "77fabfdbe4b2f31e",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "qhwq8ugKZH4jr8LY:lInCW4ZUCNpeuuwRLMorJcU=",
+        "gif_url": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJpZHhkaWJ1cGtoNTR3dDV2a3I3dnI3YmczOXRpZm5tOGtza3QzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OuQmhmAAdJFLi/giphy.gif",
+        "is_deleted": false
+    },
+    {
+        "id": "f13a822759358672",
+        "sender": "aks",
+        "recipient": "Avi",
+        "encrypted_message": "wGCaQNQGjwZ1CQ+A:rwA0M1i1qpg/tVntiL2gUtc3",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "541b940a7e7a7bb9",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "AyYSTxWWkqLMek/8:2nOPIjRckQJVLb2CLsVxTek=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "eaa37a3d56b7d23a",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "da2gOkwOM6XlXkCs:ONvbKvOcQaHo50hUw1lhOpA=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "494b7f6291179ed8",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "kdSX+kJls2d0miWP:QKwB3y84PuX/qWqDlA53Ogo=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "f6c10031dbec10ef",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "hpkAwgRSqHF6TtSn:26mKEtunJjYK8DRbEukl2vc=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "45afa97a61a7e5b0",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "oE9anDHw0yCZvEM1:+5LJvEiAe0su376IB+t+/uw=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e2c6bfb3d780a340",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "WiE6he9TFpnqe2Ps:mFrZQOaVJdvcZT3sguf7jMw=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "f715a4c2f00f33a9",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "HKYdPSBL3RFw0JAA:Bk9kc9VbuKWicIVKDP2q95o=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "aa995d096ef17758",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "9ZDf2jtIC056F6Sk:HmJshmjJT0S2E+ZtFqwo73a7",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "2ce2261b2c6c32c5",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "rHl7X5fSFGkastYQ:nduYknSS7oNP3KjDkIDjUW8=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "59a9284f38038c87",
+        "sender": "Avi",
+        "recipient": "aks",
+        "encrypted_message": "Vodb4yTl5Yc53los:KCi82DgaQcg71R4Lgi4s/5k=",
+        "gif_url": null,
+        "is_deleted": false
     }
 ]

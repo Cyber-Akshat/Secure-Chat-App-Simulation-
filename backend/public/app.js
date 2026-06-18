@@ -264,7 +264,9 @@ async function renderConversation() {
     welcomeDiv.style.textAlign = "center";
     welcomeDiv.style.marginTop = "20px";
     welcomeDiv.innerHTML = `
-      <h2 style="color: #333d47; margin-bottom: 8px;"><img src="C-removebg-preview.png" height="500" width="auto"></h2>
+      <h2 style="color: #333d47; margin-bottom: 8px;"> 
+        <img src="C-removebg-preview.png" height="400" width="auto">
+      </h2>
       <p style="color: #8c96a3; font-size: 0.95rem;">Select an online user from the sidebar to chat privately.</p>
     `;
     conversationBox.appendChild(welcomeDiv);

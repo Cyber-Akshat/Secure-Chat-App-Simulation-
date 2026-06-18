@@ -13,5 +13,20 @@
         "username": "Akshat",
         "salt": "f443da0d99f57a128444f34d59ed0333",
         "password_hash": "e94441f62231382e4472777a86f7278024f35f23732a2c6cab0064ab0467ea61"
+    },
+    {
+        "username": "aks",
+        "salt": "ae0e15222ff668599c2713e2ef53095d",
+        "password_hash": "735d9fc768bd94b34450eb16f21d2de7614dd0e983bb148e69a5a00a81a90f74"
+    },
+    {
+        "username": "mamakaash",
+        "salt": "1b85978c62ec03f4d254996e4f89dc8d",
+        "password_hash": "006e63c981a3413d80f01fb2964059d9168ecc69e8b4700663e83882cb3d512c"
+    },
+    {
+        "username": "Avi",
+        "salt": "553114d32c6c2e47101ec50b4974473f",
+        "password_hash": "0868f7ada525d6f6e9a328d9560b8c2b3cf0ac2bcd34049037efafe5db913ad8"
     }
 ]
