@@ -1,62 +1,56 @@
 [
     {
-        "sender": "Akshat",
-        "encrypted_message": "Hello",
+        "id": "e4de2bb2714b3d8c",
+        "sender": "Mitchell",
+        "encrypted_message": "zHVYLR7TL82tw/Mt:1jqlO9XJbd15gDn+pWg1+Mtj",
         "gif_url": null
     },
     {
-        "sender": "Akshat",
-        "encrypted_message": "Hello",
+        "id": "4ca4afb49d0c1e62",
+        "sender": "Mitchell",
+        "encrypted_message": "Ol7dhHs7vLFL7DcH:YivzJGhM09/HOHCHUIjm8PLJ",
         "gif_url": null
     },
     {
-        "sender": "Aksha",
-        "encrypted_message": "hello",
+        "id": "794105b68cc88035",
+        "sender": "Mitchell",
+        "encrypted_message": "mvtt/MYC0fqk6C3t:dEylD9U66ie9l6u3HwfAtiPU",
         "gif_url": null
     },
     {
-        "sender": "Esha",
-        "encrypted_message": "hi",
+        "id": "d93158f4ec565b74",
+        "sender": "Mitchell",
+        "encrypted_message": "Wd7lsYXCuLKBn0qx:8qGAxEl8bMHIyKUNX+EPdp4=",
         "gif_url": null
     },
     {
-        "sender": "Akshat",
-        "encrypted_message": "",
-        "gif_url": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif"
+        "id": "5ed70f31622aac35",
+        "sender": "Mitchell",
+        "encrypted_message": "EvxmgtjFvsgxQ14t:OY+VbWPZ9hTVg7HuLK/byddt",
+        "gif_url": null
     },
     {
-        "sender": "Akshat",
-        "encrypted_message": "",
-        "gif_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExa284amJpOTY2cGtqdG96MWpyb3Ntc2t4bWVzMWhsaHg3dDhjZ3FuOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AVP0kPZXRUxjRxCfng/giphy.gif"
+        "id": "8514a37659b6e471",
+        "sender": "Mitchell",
+        "encrypted_message": "TzX26iqD9/D+cb7j:QTmPv+Pgk909irhSJEI8xiA=",
+        "gif_url": null
     },
     {
-        "sender": "Akshat",
-        "encrypted_message": "",
-        "gif_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif"
+        "id": "4a66e3ffc781dc21",
+        "sender": "Mitchell",
+        "encrypted_message": "e7VXgk4Xfpst5MRC:k48K2RQuyNLdBOyyC2BybmI=",
+        "gif_url": null
     },
     {
-        "sender": "p",
-        "encrypted_message": "",
-        "gif_url": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif"
+        "id": "3dc6a557c4f6e273",
+        "sender": "Mitchell",
+        "encrypted_message": "RmitZzNYGoCCtehv:JPwp5JTb5RRJrf1nTqeh+4s=",
+        "gif_url": null
     },
     {
-        "sender": "a",
-        "encrypted_message": "",
-        "gif_url": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif"
-    },
-    {
-        "sender": "kjsdfhg",
-        "encrypted_message": "",
-        "gif_url": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif"
-    },
-    {
-        "sender": "p",
-        "encrypted_message": "",
-        "gif_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExa284amJpOTY2cGtqdG96MWpyb3Ntc2t4bWVzMWhsaHg3dDhjZ3FuOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AVP0kPZXRUxjRxCfng/giphy.gif"
-    },
-    {
-        "sender": "p",
-        "encrypted_message": "",
-        "gif_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif"
+        "id": "67a19f18b89ba390",
+        "sender": "Mitchell",
+        "encrypted_message": "Zg3rksE1ZKt2vX4G:L5u5iICnj90QT9qg8U1KIgMU",
+        "gif_url": null
     }
 ]

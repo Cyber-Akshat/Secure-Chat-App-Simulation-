@@ -94,11 +94,24 @@ socket.onmessage = async function(event) {
         }
       }
     }
+    // 🛡️ Catches the 10-second spam error from Patric's server smoothly
+    else if (data.event === "error") {
+      const systemId = "sys-" + Date.now();
+      addMessageToChat(systemId, "System Guard", data.message, null);
+      return;
+    }
     // 🗑️ Live Message Deletion Event Handler
     else if (data.event === "delete-message") {
       const targetBubble = document.querySelector(`[data-msg-id="${data.id}"]`);
       if (targetBubble) {
         targetBubble.remove();
+      }
+    }
+    // 🧹 GLOBAL PURGE INTERCEPTION: Listens for the backend confirmation broadcast
+    else if (data.event === "clear-all-messages") {
+      const conversationBox = document.getElementById("conversation");
+      if (conversationBox) {
+        conversationBox.replaceChildren(); // Empties the chat container clean for everyone online!
       }
     }
   } catch (err) {
@@ -152,7 +165,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
   const gifImage = messageClone.querySelector(".message-gif");
   const deleteBtn = messageClone.querySelector(".delete-btn");
 
-  // Assign internal ID to container element row for live filtering later
   rowDiv.setAttribute("data-msg-id", msgId);
   nameSpan.textContent = username;
 
@@ -166,7 +178,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
 
   if (username === "You") {
     rowDiv.classList.add("sent");
-    // Wire up delete event button exclusively if it's our message
     if (deleteBtn) {
       deleteBtn.style.display = "inline-block";
       deleteBtn.addEventListener("click", () => {
@@ -180,16 +191,30 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
     }
   } else {
     rowDiv.classList.add("received");
-    if (deleteBtn) deleteBtn.remove(); // Remove button element for other users
+    if (deleteBtn) deleteBtn.remove();
   }
 
-  if (conversationBox.querySelector('h2')) {
+  // Clear onboarding splash headers if an actual conversation begins
+  if (conversationBox.querySelector('.welcome-placeholder')) {
     conversationBox.replaceChildren();
   }
 
   conversationBox.appendChild(messageClone);
   conversationBox.scrollTop = conversationBox.scrollHeight;
 }
+
+// ============================================================================
+// 🧹 GLOBAL SYNC CLEAR CHAT ENGINE
+// ============================================================================
+// FIXED: Changed ID to "clear-btn" to link up with your HTML exactly
+document.getElementById("clear-btn")?.addEventListener("click", () => {
+  if (confirm("Are you sure you want to completely wipe the conversation history for everyone?")) {
+    if (socket.readyState === WebSocket.OPEN) {
+      // Dispatches request directly up the WebSocket pipeline to Case C in Python
+      socket.send(JSON.stringify({ event: "clear-chat" }));
+    }
+  }
+});
 
 // ============================================================================
 // GIF DRAWER MANAGEMENT
@@ -235,9 +260,15 @@ function loadOpenAccessGifs() {
     img.style.borderRadius = "4px";
     img.style.cursor = "pointer";
 
-    img.addEventListener("click", () => {
+    img.addEventListener("click", async () => {
       if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ event: "send-message", message: "", gifUrl: url }));
+        // Pass an explicitly encrypted placeholder space instead of raw text
+        const blankEncrypted = await encryptText(" ");
+        socket.send(JSON.stringify({
+          event: "send-message",
+          message: blankEncrypted,
+          gifUrl: url
+        }));
         gifDrawer.style.display = "none";
       }
     });
