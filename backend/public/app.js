@@ -17,6 +17,7 @@ if (!storedUsername) {
 const myUsername = sanitizeUsername(storedUsername);
 let activeRecipient = null; // 🎯 Tracks who we are privately messaging
 let allChatLogs = [];       // 🗄️ Locally cached logs for smooth user switching
+let unreadCounts = {};      // 🛑 Tracks unread message tallies per user handle
 
 document.getElementById("logout-btn")?.addEventListener("click", () => {
   sessionStorage.removeItem("hichat_username");
@@ -71,6 +72,14 @@ async function decryptText(encryptedPayload) {
 // ============================================================================
 const socket = new WebSocket(`ws://${window.location.host}/start_web_socket?username=${encodeURIComponent(myUsername)}`);
 
+// Helper to safely trigger a live re-render of the sidebar user list
+function refreshUserListUI() {
+  const onlineUsers = Array.from(document.querySelectorAll("#users li span[data-username]")).map(el => el.getAttribute("data-username"));
+  // Fallback to active keys if DOM is being populated initially
+  const combinedUsernames = onlineUsers.length ? onlineUsers : Object.keys(unreadCounts).concat([myUsername]);
+  updateUserList(combinedUsernames);
+}
+
 socket.onmessage = async function(event) {
   try {
     const data = JSON.parse(event.data);
@@ -88,6 +97,14 @@ socket.onmessage = async function(event) {
         gif_url: data.gifUrl,
         is_deleted: data.is_deleted || false
       });
+
+      // 🛑 UNREAD COUNTER LOGIC
+      // If the incoming message is for me, from someone else, and NOT my currently open chat room
+      if (data.recipient === myUsername && data.username !== myUsername && data.username !== activeRecipient) {
+        unreadCounts[data.username] = (unreadCounts[data.username] || 0) + 1;
+        refreshUserListUI();
+      }
+
       await renderConversation();
     }
     // 📜 Incoming Chat History Batch Handler
@@ -101,7 +118,7 @@ socket.onmessage = async function(event) {
       addMessageToChat(systemId, "System Guard", data.message, null);
       return;
     }
-    // 🗑️ Live Message Deletion Interceptor (Marks instead of deleting completely)
+    // 🗑️ Live Message Deletion Interceptor
     else if (data.event === "delete-message") {
       const targetMsg = allChatLogs.find(msg => msg.id === data.id);
       if (targetMsg) {
@@ -130,6 +147,11 @@ function updateUserList(usernames) {
   for (const username of usernames) {
     if (username === myUsername) continue;
 
+    // Make sure an entry tracking slot exists in the local map
+    if (unreadCounts[username] === undefined) {
+      unreadCounts[username] = 0;
+    }
+
     const listItem = document.createElement("li");
     listItem.style.display = "flex";
     listItem.style.alignItems = "center";
@@ -145,6 +167,7 @@ function updateUserList(usernames) {
 
     listItem.addEventListener("click", async () => {
       activeRecipient = username;
+      unreadCounts[username] = 0; // 🎯 Wipes the unread counter when clicked
       updateUserList(usernames);
       await renderConversation();
     });
@@ -157,18 +180,40 @@ function updateUserList(usernames) {
 
     const nameSpan = document.createElement("span");
     nameSpan.textContent = username;
+    nameSpan.setAttribute("data-username", username); // reference point for UI re-rendering
     nameSpan.style.flex = "1";
     nameSpan.style.fontWeight = (activeRecipient === username) ? "700" : "500";
+
+    // Unread Badge Container layout element
+    const badgeWrapper = document.createElement("div");
+    badgeWrapper.style.display = "flex";
+    badgeWrapper.style.alignItems = "center";
+    badgeWrapper.style.gap = "8px";
+
+    // Render badge count bubble if there are pending texts
+    if (unreadCounts[username] > 0) {
+      const unreadBadge = document.createElement("span");
+      unreadBadge.textContent = unreadCounts[username];
+      unreadBadge.style.backgroundColor = "#ef4444";
+      unreadBadge.style.color = "#ffffff";
+      unreadBadge.style.fontSize = "0.75rem";
+      unreadBadge.style.fontWeight = "bold";
+      unreadBadge.style.padding = "2px 6px";
+      unreadBadge.style.borderRadius = "10px";
+      unreadBadge.style.lineHeight = "1";
+      badgeWrapper.appendChild(unreadBadge);
+    }
 
     const statusDot = document.createElement("span");
     statusDot.style.width = "8px";
     statusDot.style.height = "8px";
     statusDot.style.backgroundColor = "#10b981";
     statusDot.style.borderRadius = "50%";
+    badgeWrapper.appendChild(statusDot);
 
     listItem.appendChild(avatarImg);
     listItem.appendChild(nameSpan);
-    listItem.appendChild(statusDot);
+    listItem.appendChild(badgeWrapper);
     userList.appendChild(listItem);
   }
 
@@ -190,6 +235,7 @@ function updateUserList(usernames) {
 
     const myNameSpan = document.createElement("span");
     myNameSpan.textContent = `${myUsername} (You)`;
+    myNameSpan.setAttribute("data-username", myUsername);
     myNameSpan.style.flex = "1";
     myNameSpan.style.fontWeight = "500";
 
@@ -206,7 +252,7 @@ function updateUserList(usernames) {
   }
 }
 
-// 🛡️ Filters data logs dynamically so only the sender and target recipient see the text
+// 🛡 ... rest of the unchanged rendering logic continues exactly below ...
 async function renderConversation() {
   const conversationBox = document.getElementById("conversation");
   if (!conversationBox) return;
@@ -233,7 +279,6 @@ async function renderConversation() {
   for (const msg of privateThread) {
     const senderDisplay = (msg.sender === myUsername) ? "You" : msg.sender;
 
-    // Check if the message has been marked as deleted
     if (msg.is_deleted) {
       addMessageToChat(msg.id, senderDisplay, "This message has been deleted", null, true);
     } else {
@@ -270,7 +315,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
 
   textParagraph.textContent = messageText || "";
 
-  // Style deleted text differently if preferred (italicized)
   if (isDeleted) {
     textParagraph.style.fontStyle = "italic";
     textParagraph.style.opacity = "0.7";
@@ -278,7 +322,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
 
   if (username === "You") {
     rowDiv.classList.add("sent");
-    // Only display delete button if it hasn't been deleted already
     if (deleteBtn && !isDeleted) {
       deleteBtn.style.display = "inline-block";
       deleteBtn.addEventListener("click", () => {
