@@ -1,12 +1,17 @@
 [
     {
-        "username": "gideon",
-        "salt": "1612850b4aa536be1d588749ea8bd195",
-        "password_hash": "0d989c144cd6c6f5475d646ca7d7a040a7d8f127a7f9ed77ddaeb595bf964735"
+        "username": "Gideon",
+        "salt": "a0ddfce09d36fedfd4cb11c5087a70f2",
+        "password_hash": "289892415576e42d6c8a9c0fe554c584c43e54c6d4d73b5146a665fef977dca8"
     },
     {
         "username": "Mitchell",
-        "salt": "c6271d47c7b3dde19db83833e98dfe96",
-        "password_hash": "24c83c4813120b08b9e2ef46542b0a9286e710be49f0b1b4fd84bd2a0eb2ae75"
+        "salt": "d9672793c58fb0ebd02dcba69d8dbbae",
+        "password_hash": "c97a8fe655456baa9ecdae6dfe126ef99881908669ce46a1ab641ca8ccc88631"
+    },
+    {
+        "username": "Akshat",
+        "salt": "f443da0d99f57a128444f34d59ed0333",
+        "password_hash": "e94441f62231382e4472777a86f7278024f35f23732a2c6cab0064ab0467ea61"
     }
 ]
