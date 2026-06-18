@@ -1,12 +1,5 @@
 [
     {
-        "username": "Mitchell",
-        "salt": "2e2668b3be049445d0f9d762935f5fdc",
-        "password_hash": "fdf6d99965df745f65bb0023a03a2762f03defbed86be94a445c133b1d02c6cb"
-    },
-    {
         "username": "gideon",
-        "salt": "78ab7495bb830006703418e28bac7408",
-        "password_hash": "059e3bd58cf358e7ed7248d3e800f5f7c914f1cfefaffda6b807114a81f8fbf9"
     }
 ]

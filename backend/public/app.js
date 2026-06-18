@@ -94,12 +94,6 @@ socket.onmessage = async function(event) {
         }
       }
     }
-    // 🚨 ADDED HERE: Catch the 10-second spam error from Patric's server
-    else if (data.event === "error") {
-      // Pass "system" as a placeholder ID, "System Guard" as the sender name, and the alert text
-      addMessageToChat("system", "System Guard", data.message, null);
-      return; // Stops execution immediately
-    }
     // 🗑️ Live Message Deletion Event Handler
     else if (data.event === "delete-message") {
       const targetBubble = document.querySelector(`[data-msg-id="${data.id}"]`);

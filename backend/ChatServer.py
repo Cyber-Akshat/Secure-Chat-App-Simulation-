@@ -1,8 +1,7 @@
 import json
 import os
 import asyncio
-import time
-import secrets  # Safely generate random unique IDs for messages
+import secrets  # Added to safely generate random unique IDs for messages
 from fastapi import WebSocket, WebSocketDisconnect
 
 
@@ -13,45 +12,10 @@ class ChatServer:
         self.file_lock = asyncio.Lock()
         self.storage_file = "Encryptedmsg.json"
 
-        # 🛡️ SECURITY ADDITION: Tracks consecutive messaging metrics
-        self.throttle_tracker = {
-            "current_spammer": None,
-            "timestamps": []
-        }
-
         # Initialize the file with an empty list if it doesn't exist yet
         if not os.path.exists(self.storage_file):
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump([], f)
-
-    def is_rate_limited(self, username: str) -> bool:
-        """
-        Evaluates message metrics over a moving 10-second window.
-        Returns True if a user reaches 11 messages within 10 seconds
-        without a reply from someone else.
-        """
-        current_time = time.time()
-
-        # Condition A: If a DIFFERENT user replies, reset the counter
-        if self.throttle_tracker["current_spammer"] != username:
-            self.throttle_tracker["current_spammer"] = username
-            self.throttle_tracker["timestamps"] = [current_time]
-            return False
-
-        # Condition B: Same user sending consecutive messages
-        self.throttle_tracker["timestamps"].append(current_time)
-
-        # FIX: Evict timestamps older than 10 seconds from the list
-        ten_seconds_ago = current_time - 10
-        self.throttle_tracker["timestamps"] = [
-            t for t in self.throttle_tracker["timestamps"] if t > ten_seconds_ago
-        ]
-
-        # If they hit more than 10 entries within the last 10 seconds, trigger rate limiting
-        if len(self.throttle_tracker["timestamps"]) > 10:
-            return True
-
-        return False
 
     async def handle_connection(self, websocket: WebSocket):
         username = websocket.query_params.get("username")
@@ -70,7 +34,7 @@ class ChatServer:
 
         await self.broadcast_usernames()
 
-        # 📜 Instantly send all stored chat logs to this single user upon connection
+        # 📜 FIX 1: Instantly send all stored chat logs to this single user upon connection
         await self.send_chat_history(websocket)
 
         try:
@@ -104,23 +68,8 @@ class ChatServer:
         event_type = data.get("event")
 
         # 📨 Case A: Handling incoming live chat text or GIFs
-        # 📨 Case A: Handling incoming live chat text or GIFs
         if event_type == "send-message":
-
-            # 🚨 RATE LIMIT INTERCEPTION
-            if self.is_rate_limited(username):
-                # Target just the spamming client socket connection with a safe alert notification
-                user_socket = self.connected_clients.get(username)
-                if user_socket:
-                    await user_socket.send_text(json.dumps({
-                        "event": "error",
-                        # ⏬ REPLACE THE OLD STRING WITH THIS ONE RIGHT HERE:
-                        "message": "Spam protection active. You cannot send more than 10 messages consecutively within 10 seconds without a reply!"
-                    }))
-                print(f"⚠️  [Rate Limit Flagged] Blocked consecutive transmission from user: {username}")
-                return  # Abort further processing execution
-
-            # msg_id setup and storage processing
+            # FIX 2: Generate a unique ID string for this message so it can be deleted later
             msg_id = secrets.token_hex(8)
             message_payload = data.get("message", "")
             gif_payload = data.get("gifUrl")
