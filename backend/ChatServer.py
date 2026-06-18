@@ -1,18 +1,18 @@
 import json
 import os
 import asyncio
-import secrets  # Added to safely generate random unique IDs for messages
+import secrets
 from fastapi import WebSocket, WebSocketDisconnect
 
 
 class ChatServer:
     def __init__(self):
         self.connected_clients: dict[str, WebSocket] = {}
-        # Thread/Async lock to prevent data corruption during simultaneous writes
+        # Mutex lock prevents file corruption during simultaneous edits
         self.file_lock = asyncio.Lock()
         self.storage_file = "Encryptedmsg.json"
 
-        # Initialize the file with an empty list if it doesn't exist yet
+        # Initialize JSON file if it's missing
         if not os.path.exists(self.storage_file):
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump([], f)
@@ -34,7 +34,7 @@ class ChatServer:
 
         await self.broadcast_usernames()
 
-        # 📜 FIX 1: Instantly send all stored chat logs to this single user upon connection
+        # Send full text history to this user immediately on connection
         await self.send_chat_history(websocket)
 
         try:
@@ -45,7 +45,7 @@ class ChatServer:
             await self.client_disconnected(username)
 
     async def send_chat_history(self, websocket: WebSocket):
-        """Reads historical chat data from the file and loads it onto a client's screen."""
+        """Dispatches all stored conversation entries directly to a single connection."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -53,7 +53,6 @@ class ChatServer:
             except (json.JSONDecodeError, FileNotFoundError):
                 logs = []
 
-        # Dispatch a special 'chat-history' payload to the connecting websocket client only
         await websocket.send_text(json.dumps({
             "event": "chat-history",
             "messages": logs
@@ -67,17 +66,14 @@ class ChatServer:
 
         event_type = data.get("event")
 
-        # 📨 Case A: Handling incoming live chat text or GIFs
+        # Handle incoming normal messages
         if event_type == "send-message":
-            # FIX 2: Generate a unique ID string for this message so it can be deleted later
             msg_id = secrets.token_hex(8)
             message_payload = data.get("message", "")
             gif_payload = data.get("gifUrl")
 
-            # Store the message details along with its unique ID
             await self.save_to_json_file(msg_id, username, message_payload, gif_payload)
 
-            # Broadcast it with the ID out to all online users
             await self.broadcast({
                 "event": "send-message",
                 "id": msg_id,
@@ -86,14 +82,18 @@ class ChatServer:
                 "gifUrl": gif_payload
             })
 
-        # 🗑️ Case B: Handling incoming live deletion requests from the frontend button
+        # Handle single message deletion requests
         elif event_type == "delete-message":
             msg_id = data.get("id")
             if msg_id:
                 await self.delete_from_json_file(msg_id, username)
 
+        # Handle complete chat clear requests
+        elif event_type == "clear-chat":
+            await self.clear_all_chat_logs()
+
     async def save_to_json_file(self, msg_id: str, username: str, encrypted_text: str, gif_url: str or None):
-        """Safely appends the message record into Encryptedmsg.json with a distinct ID."""
+        """Safely saves a message entry to Encryptedmsg.json."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -101,7 +101,6 @@ class ChatServer:
             except (json.JSONDecodeError, FileNotFoundError):
                 logs = []
 
-            # Structure entry with an ID so the delete button knows exactly what to look for
             new_entry = {
                 "id": msg_id,
                 "sender": username,
@@ -114,7 +113,7 @@ class ChatServer:
                 json.dump(logs, f, indent=4, ensure_ascii=False)
 
     async def delete_from_json_file(self, msg_id: str, username: str):
-        """Removes a message from storage only if the requester is the person who sent it."""
+        """Deletes a single target message from the JSON file if the sender matches."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -122,22 +121,33 @@ class ChatServer:
             except (json.JSONDecodeError, FileNotFoundError):
                 return
 
-            # Find the message to confirm permissions
             target_msg = next((m for m in logs if m.get("id") == msg_id), None)
 
-            # Security Guard: Only let the sender delete the message
             if target_msg and target_msg.get("sender") == username:
-                # Keep everything EXCEPT the message being deleted
                 logs = [m for m in logs if m.get("id") != msg_id]
 
                 with open(self.storage_file, "w", encoding="utf-8") as f:
                     json.dump(logs, f, indent=4, ensure_ascii=False)
 
-                # Tell everyone on the frontend to remove this specific message ID immediately
                 await self.broadcast({
                     "event": "delete-message",
                     "id": msg_id
                 })
+
+    async def clear_all_chat_logs(self):
+        """Purges the entire JSON storage database file and tells all browsers to clear UI."""
+        async with self.file_lock:
+            try:
+                with open(self.storage_file, "w", encoding="utf-8") as f:
+                    json.dump([], f)  # Wipes file back down to an empty list array
+            except Exception as e:
+                print(f"Error resetting chat log file: {e}")
+                return
+
+        # Broadcast clear signifier event packet out to all active clients
+        await self.broadcast({
+            "event": "clear-chat"
+        })
 
     async def client_disconnected(self, username: str):
         if username in self.connected_clients:

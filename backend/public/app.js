@@ -5,13 +5,13 @@ function sanitizeUsername(raw) {
 }
 
 // ============================================================================
-// 🔐 SESSION CHECKING
+// 🔐 SESSION MONITOR PIPELINE
 // ============================================================================
 const storedUsername = sessionStorage.getItem("hichat_username") || localStorage.getItem("hichat_username");
 
 if (!storedUsername) {
   window.location.href = "login.html";
-  throw new Error("No active credentials found — routing to authentication page.");
+  throw new Error("Missing login authorization data — routing back to login page.");
 }
 
 const myUsername = sanitizeUsername(storedUsername);
@@ -23,7 +23,7 @@ document.getElementById("logout-btn")?.addEventListener("click", () => {
 });
 
 // ============================================================================
-// 🔒 END-TO-END ENCRYPTION (AES-GCM ENGINE)
+// 🔒 END-TO-END CRYPTO ENGINE (AES-GCM SYSTEM)
 // ============================================================================
 const ENCRYPTION_PASSPHRASE = "SuperSecretChatRoomKey123!";
 
@@ -65,7 +65,7 @@ async function decryptText(encryptedPayload) {
 }
 
 // ============================================================================
-// 📡 WEB_SOCKET COMMUNICATIONS HANDLER
+// 📡 WEB_SOCKET CLIENT PROCESSING STREAM LOOPS
 // ============================================================================
 const socket = new WebSocket(`ws://${window.location.host}/start_web_socket?username=${encodeURIComponent(myUsername)}`);
 
@@ -76,33 +76,32 @@ socket.onmessage = async function(event) {
     if (data.event === "update-users") {
       updateUserList(data.usernames);
     }
-    // Live Incoming Message Handler
     else if (data.event === "send-message") {
-      const senderDisplay = (data.username === myUsername) ? "You" : data.username;
       const clearTextMessage = await decryptText(data.message);
-      addMessageToChat(data.id, senderDisplay, clearTextMessage, data.gifUrl);
+      addMessageToChat(data.id, data.username, clearTextMessage, data.gifUrl);
     }
-    // 📜 Incoming Chat History Batch Handler
     else if (data.event === "chat-history") {
       const conversationBox = document.getElementById("conversation");
       if (data.messages.length > 0) {
-        conversationBox.replaceChildren(); // clear splash info text
+        conversationBox.replaceChildren(); // clear welcome splash
         for (const msg of data.messages) {
-          const senderDisplay = (msg.sender === myUsername) ? "You" : msg.sender;
           const clearTextMessage = await decryptText(msg.encrypted_message);
-          addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url);
+          addMessageToChat(msg.id, msg.sender, clearTextMessage, msg.gif_url);
         }
       }
     }
-    // 🗑️ Live Message Deletion Event Handler
     else if (data.event === "delete-message") {
-      const targetBubble = document.querySelector(`[data-msg-id="${data.id}"]`);
-      if (targetBubble) {
-        targetBubble.remove();
+      const targetElement = document.getElementById(`msg-row-${data.id}`);
+      if (targetElement) {
+        targetElement.remove();
       }
     }
+    // 🧹 Live real-time absolute container wipe handler event
+    else if (data.event === "clear-chat") {
+      resetChatWindowToDefaultWelcome();
+    }
   } catch (err) {
-    console.error("Inbound routing parsing layout error:", err);
+    console.error("UI stream processing loop execution error:", err);
   }
 };
 
@@ -140,7 +139,7 @@ function updateUserList(usernames) {
   }
 }
 
-function addMessageToChat(msgId, username, messageText, gifUrl = null) {
+function addMessageToChat(msgId, senderUsername, messageText, gifUrl = null) {
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
@@ -152,9 +151,12 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
   const gifImage = messageClone.querySelector(".message-gif");
   const deleteBtn = messageClone.querySelector(".delete-btn");
 
-  // Assign internal ID to container element row for live filtering later
-  rowDiv.setAttribute("data-msg-id", msgId);
-  nameSpan.textContent = username;
+  if (rowDiv) {
+    rowDiv.id = `msg-row-${msgId}`;
+  }
+
+  const isMe = (senderUsername === myUsername);
+  nameSpan.textContent = isMe ? "You" : senderUsername;
 
   if (gifUrl) {
     gifImage.src = gifUrl;
@@ -164,13 +166,12 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
 
   textParagraph.textContent = messageText || "";
 
-  if (username === "You") {
+  if (isMe) {
     rowDiv.classList.add("sent");
-    // Wire up delete event button exclusively if it's our message
     if (deleteBtn) {
       deleteBtn.style.display = "inline-block";
       deleteBtn.addEventListener("click", () => {
-        if (confirm("Are you sure you want to delete this message?")) {
+        if (confirm("Are you sure you want to permanently delete this message?")) {
           socket.send(JSON.stringify({
             event: "delete-message",
             id: msgId
@@ -180,10 +181,11 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
     }
   } else {
     rowDiv.classList.add("received");
-    if (deleteBtn) deleteBtn.remove(); // Remove button element for other users
+    if (deleteBtn) deleteBtn.remove();
   }
 
-  if (conversationBox.querySelector('h2')) {
+  // Remove the welcome message placeholder card structure before adding normal text row elements
+  if (conversationBox.querySelector('.welcome-placeholder')) {
     conversationBox.replaceChildren();
   }
 
@@ -191,8 +193,31 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
   conversationBox.scrollTop = conversationBox.scrollHeight;
 }
 
+function resetChatWindowToDefaultWelcome() {
+  const conversationBox = document.getElementById("conversation");
+  if (!conversationBox) return;
+
+  conversationBox.innerHTML = `
+    <div class="welcome-placeholder" style="text-align: center; margin-top: 20px;">
+      <h2 style="color: #333d47; margin-bottom: 8px;">Welcome to Hi Chat</h2>
+      <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below.</p>
+    </div>
+  `;
+}
+
+// Wire up the new clear chat button listener action pipeline
+document.getElementById("clear-btn")?.addEventListener("click", () => {
+  if (confirm("🚨 WARNING: Are you sure you want to completely clear the chat room history for EVERYONE? This cannot be undone!")) {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        event: "clear-chat"
+      }));
+    }
+  }
+});
+
 // ============================================================================
-// GIF DRAWER MANAGEMENT
+// GIF DRAW PANEL LOGIC
 // ============================================================================
 const gifToggleBtn = document.getElementById("gif-toggle-btn");
 const gifDrawer = document.getElementById("gif-drawer");
@@ -246,7 +271,7 @@ function loadOpenAccessGifs() {
 }
 
 // ============================================================================
-// CHAT FORM SUBMISSION
+// CHAT FORM SUBMISSION ENGINE
 // ============================================================================
 const messageInput = document.getElementById("data");
 const chatForm = document.getElementById("form");
@@ -267,7 +292,7 @@ chatForm?.addEventListener("submit", async (event) => {
       }));
       messageInput.value = "";
     } catch (err) {
-      console.error("Critical error during transmission submission loop:", err);
+      console.error("Critical error processing encryption packet dispatch stream:", err);
     }
   }
 });

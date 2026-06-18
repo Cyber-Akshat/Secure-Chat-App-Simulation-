@@ -3,14 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🗨 Hi Chat</title>
+    <title>Converse</title>
     <link rel="stylesheet" href="style.css" />
-    <script defer type="module" src="app.js?v=2"></script>
+    <script defer type="module" src="app.js?v=6"></script>
   </head>
   <body>
     <header title="Welcome to the main chat room!">
-      <h1>🗨 Hi Chat</h1>
-      <button type="button" id="logout-btn" style="margin-left: auto; background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">Log out</button>
+      <h1>Converse</h1>
+      <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+        <button type="button" id="clear-btn" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">Clear Chat</button>
+        <button type="button" id="logout-btn" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">Log out</button>
+      </div>
     </header>
 
     <div id="content-wrapper">
@@ -21,7 +24,7 @@
 
       <main id="content">
         <div id="conversation">
-          <div style="text-align: center; margin-top: 20px;">
+          <div class="welcome-placeholder" style="text-align: center; margin-top: 20px;">
             <h2 style="color: #333d47; margin-bottom: 8px;">Welcome to Hi Chat</h2>
             <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below.</p>
           </div>
