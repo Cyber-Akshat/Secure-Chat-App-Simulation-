@@ -1,35 +1,29 @@
-import json #r/w to json
-import os #mainly for checking if files/dirs exist
-import asyncio #prevents simultaneous file writes to json files preventing corruptions
-import secrets #generates cryptographically secure random values
-
+import json
+import os
+import asyncio
+import secrets
 from fastapi import WebSocket, WebSocketDisconnect
 
 
 class ChatServer:
     def __init__(self):
         self.connected_clients: dict[str, WebSocket] = {}
-        # maps users to connections in a dict
-        # Mutual exclusion lock prevents file corruption during simultaneous edits
+        # Mutex lock prevents file corruption during simultaneous edits
         self.file_lock = asyncio.Lock()
         self.storage_file = "Encryptedmsg.json"
-        #persists chat history across restarts
 
-        # creates JSON file if it's missing
+        # Initialize JSON file if it's missing
         if not os.path.exists(self.storage_file):
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump([], f)
 
     async def handle_connection(self, websocket: WebSocket):
         username = websocket.query_params.get("username")
-        #gets user from websockets URL
 
         if not username:
-            #rejects user if no username is entered
             await websocket.close(code=1003, reason="Username is required")
             return
 
-        #rejects duplicate usernames
         if username in self.connected_clients:
             await websocket.close(code=1008, reason=f"Username {username} is already taken")
             return
@@ -37,15 +31,13 @@ class ChatServer:
         await websocket.accept()
         self.connected_clients[username] = websocket
         print(f"New client connected: {username}")
-        #logs new user
 
-        await self.broadcast_usernames()#send new user list to everyone
+        await self.broadcast_usernames()
 
         # Send full text history to this user immediately on connection
         await self.send_chat_history(websocket)
 
         try:
-            #listens for messages until user disconnects
             while True:
                 raw_message = await websocket.receive_text()
                 await self.receive_message(username, raw_message)
@@ -53,7 +45,7 @@ class ChatServer:
             await self.client_disconnected(username)
 
     async def send_chat_history(self, websocket: WebSocket):
-        #reads everything in encryptedmsg.json and sends it as chat history to a single user who just connected
+        """Dispatches all stored conversation entries directly to a single connection."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -101,7 +93,7 @@ class ChatServer:
             await self.clear_all_chat_logs()
 
     async def save_to_json_file(self, msg_id: str, username: str, encrypted_text: str, gif_url: str or None):
-        #Safely saves (appends) a message entry to Encryptedmsg.json
+        """Safely saves a message entry to Encryptedmsg.json."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -121,7 +113,7 @@ class ChatServer:
                 json.dump(logs, f, indent=4, ensure_ascii=False)
 
     async def delete_from_json_file(self, msg_id: str, username: str):
-        #Deletes a single target message from the JSON file if the sender matches
+        """Deletes a single target message from the JSON file if the sender matches."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -143,7 +135,7 @@ class ChatServer:
                 })
 
     async def clear_all_chat_logs(self):
-        #Purges the entire JSON storage database file and tells all browsers to clear UI
+        """Purges the entire JSON storage database file and tells all browsers to clear UI."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "w", encoding="utf-8") as f:
@@ -158,7 +150,6 @@ class ChatServer:
         })
 
     async def client_disconnected(self, username: str):
-        #deletes dc'd clients from json file
         if username in self.connected_clients:
             del self.connected_clients[username]
 
