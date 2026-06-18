@@ -1,6 +1,7 @@
 import json
 import os
 import asyncio
+import time  # ✅ Added missing time import for rate calculations
 import secrets  # Added to safely generate random unique IDs for messages
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -12,10 +13,43 @@ class ChatServer:
         self.file_lock = asyncio.Lock()
         self.storage_file = "Encryptedmsg.json"
 
+        # 🛡️ Trackers initialization structure inside constructor
+        self.throttle_tracker = {
+            "current_spammer": None,
+            "timestamps": []
+        }
+
         # Initialize the file with an empty list if it doesn't exist yet
         if not os.path.exists(self.storage_file):
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump([], f)
+
+    def is_rate_limited(self, username: str) -> bool:
+        """
+        Evaluates message metrics over a moving 10-second window.
+        """
+        current_time = time.time()
+
+        # Condition A: If a DIFFERENT user replies, reset the counter
+        if self.throttle_tracker["current_spammer"] != username:
+            self.throttle_tracker["current_spammer"] = username
+            self.throttle_tracker["timestamps"] = [current_time]
+            return False
+
+        # Condition B: Same user sending consecutive messages
+        self.throttle_tracker["timestamps"].append(current_time)
+
+        # Evict timestamps older than 10 seconds from the list
+        ten_seconds_ago = current_time - 10
+        self.throttle_tracker["timestamps"] = [
+            t for t in self.throttle_tracker["timestamps"] if t > ten_seconds_ago
+        ]
+
+        # Trigger restriction if they exceed 10 entries
+        if len(self.throttle_tracker["timestamps"]) > 10:
+            return True
+
+        return False
 
     async def handle_connection(self, websocket: WebSocket):
         username = websocket.query_params.get("username")
@@ -34,7 +68,7 @@ class ChatServer:
 
         await self.broadcast_usernames()
 
-        # 📜 FIX 1: Instantly send all stored chat logs to this single user upon connection
+        # 📜 Instantly send all stored chat logs to this single user upon connection
         await self.send_chat_history(websocket)
 
         try:
@@ -69,7 +103,20 @@ class ChatServer:
 
         # 📨 Case A: Handling incoming live chat text or GIFs
         if event_type == "send-message":
-            # FIX 2: Generate a unique ID string for this message so it can be deleted later
+
+            # 🚨 RATE LIMIT INTERCEPTION (10 seconds)
+            if self.is_rate_limited(username):
+                # Target just the spamming client socket connection with a safe alert notification
+                user_socket = self.connected_clients.get(username)
+                if user_socket:
+                    await user_socket.send_text(json.dumps({
+                        "event": "error",
+                        "message": "Spam protection active. You cannot send more than 10 messages consecutively within 10 seconds without a reply!"
+                    }))
+                print(f"⚠️  [Rate Limit Flagged] Blocked consecutive transmission from user: {username}")
+                return  # CRITICAL: This return drops the message right here so it doesn't process further!
+
+            # If NOT rate limited, proceed with normal execution flow:
             msg_id = secrets.token_hex(8)
             message_payload = data.get("message", "")
             gif_payload = data.get("gifUrl")
@@ -91,6 +138,27 @@ class ChatServer:
             msg_id = data.get("id")
             if msg_id:
                 await self.delete_from_json_file(msg_id, username)
+
+        # 🧹 Case C: Handling incoming global clear request from clear button
+        elif event_type == "clear-chat":
+            async with self.file_lock:
+                try:
+                    # Clear out JSON chat records array completely
+                    with open(self.storage_file, "w", encoding="utf-8") as f:
+                        json.dump([], f)
+
+                    # Reset the rate limiting counter history parameters simultaneously
+                    self.throttle_tracker["current_spammer"] = None
+                    self.throttle_tracker["timestamps"] = []
+                    print(f"🧹 Chat log database purged by user: {username}")
+                except Exception as e:
+                    print(f"Error purging database history logs: {e}")
+                    return
+
+            # Broadcast clean execution sync event structure out to all connected client browser interfaces
+            await self.broadcast({
+                "event": "clear-all-messages"
+            })
 
     async def save_to_json_file(self, msg_id: str, username: str, encrypted_text: str, gif_url: str or None):
         """Safely appends the message record into Encryptedmsg.json with a distinct ID."""
