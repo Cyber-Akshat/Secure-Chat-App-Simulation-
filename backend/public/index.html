@@ -2,13 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🗨 Hi Chat</title>
     <link rel="stylesheet" href="style.css" />
-    <script defer type="module" src="app.js"></script>
+    <script defer type="module" src="app.js?v=2"></script>
   </head>
   <body>
     <header title="Welcome to the main chat room!">
       <h1>🗨 Hi Chat</h1>
+      <button type="button" id="logout-btn" style="margin-left: auto; background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">Log out</button>
     </header>
 
     <div id="content-wrapper">
@@ -19,19 +21,18 @@
 
       <main id="content">
         <div id="conversation">
-          <div style="text-align: center;">
+          <div style="text-align: center; margin-top: 20px;">
             <h2 style="color: #333d47; margin-bottom: 8px;">Welcome to Hi Chat</h2>
-            <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below .</p>
+            <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below.</p>
           </div>
         </div>
 
         <div id="gif-drawer" style="display: none; position: absolute; bottom: 65px; right: 16px; background: white; border: 1px solid #ccd0d5; border-radius: 8px; width: 300px; max-height: 280px; flex-direction: column; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
           <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #f0f2f5; border-bottom: 1px solid #e4e6eb; font-size: 13px; font-weight: 600;">
             <span>Select a GIF</span>
-            <button type="button" id="close-gif-btn" style="background: none; border: none; cursor: pointer; color: #888;">✕</button>
+            <button type="button" id="close-gif-btn" style="background: none; border: none; cursor: pointer; color: #888; font-size: 14px;">✕</button>
           </div>
-          <div id="gif-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px; overflow-y: auto; max-height: 230px;">
-            </div>
+          <div id="gif-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px; overflow-y: auto; max-height: 230px;"></div>
         </div>
 
         <div id="typing-indicator"></div>
@@ -44,9 +45,7 @@
             autocomplete="off"
             title="Press Enter or click Send to submit"
           />
-
           <button type="button" id="gif-toggle-btn" class="chat-gif-button" title="Send a GIF">GIF</button>
-
           <button type="submit" id="send">Send ᯓ✉︎</button>
         </form>
       </main>
@@ -55,9 +54,12 @@
     <template id="message">
       <div class="message-row">
         <div class="message-bubble">
-          <span class="sender-name"></span>
-          <p class="message-text"></p>
-          <img class="message-gif" style="display: none; max-width: 200px; border-radius: 6px; margin-top: 4px;" alt="Sent GIF"/>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 3px;">
+            <span class="sender-name" style="font-weight: 700; font-size: 0.85rem;"></span>
+            <button type="button" class="delete-btn" style="display: none; background: none; border: none; color: #f87171; font-size: 0.75rem; cursor: pointer; padding: 0; font-weight: 600; transition: color 0.2s;">Delete</button>
+          </div>
+          <p class="message-text" style="margin: 0; word-break: break-word; white-space: pre-wrap;"></p>
+          <img class="message-gif" src="" alt="Sent GIF" style="display: none; max-width: 100%; border-radius: 4px; margin-top: 6px;" />
         </div>
       </div>
     </template>

@@ -1,85 +1,73 @@
 function sanitizeUsername(raw) {
+  if (!raw) return "";
   const noTags = raw.replace(/<[^>]*>/g, "");
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
 
-const rawInput = prompt("Enter your username for Hi Chat:") ?? "";
-const myUsername = sanitizeUsername(rawInput) || "User_" + Math.floor(Math.random() * 1000);
+// ============================================================================
+// 🔐 SESSION CHECKING
+// ============================================================================
+const storedUsername = sessionStorage.getItem("hichat_username") || localStorage.getItem("hichat_username");
+
+if (!storedUsername) {
+  window.location.href = "login.html";
+  throw new Error("No active credentials found — routing to authentication page.");
+}
+
+const myUsername = sanitizeUsername(storedUsername);
+
+document.getElementById("logout-btn")?.addEventListener("click", () => {
+  sessionStorage.removeItem("hichat_username");
+  localStorage.removeItem("hichat_username");
+  window.location.href = "login.html";
+});
 
 // ============================================================================
-// 🔒 SECURE END-TO-END ENCRYPTION (AES-GCM BASE64 ENGINE)
+// 🔒 END-TO-END ENCRYPTION (AES-GCM ENGINE)
 // ============================================================================
-
-// SECURITY FIX: In a real app, users would input this dynamically, not hardcoded!
 const ENCRYPTION_PASSPHRASE = "SuperSecretChatRoomKey123!";
 
 async function getEncryptionKey() {
   const enc = new TextEncoder();
-  // We hash the password to ensure it is exactly 32 bytes long safely
   const hashedKeyMaterial = await window.crypto.subtle.digest("SHA-256", enc.encode(ENCRYPTION_PASSPHRASE));
-
   return await window.crypto.subtle.importKey(
-    "raw",
-    hashedKeyMaterial,
-    { name: "AES-GCM" },
-    false,
-    ["encrypt", "decrypt"]
+    "raw", hashedKeyMaterial, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]
   );
 }
 
-// Encrypts plain text into a secure Base64 string
 async function encryptText(plainText) {
   if (!plainText) return "";
   try {
     const key = await getEncryptionKey();
     const enc = new TextEncoder();
-    const iv = window.crypto.getRandomValues(new Uint8Array(12)); // Secure Initialization Vector
-
-    const encrypted = await window.crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: iv },
-      key,
-      enc.encode(plainText)
-    );
-
-    // FIX: Using standardized Base64 instead of unpredictable hex loops
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, enc.encode(plainText));
     const ivBase64 = btoa(String.fromCharCode(...iv));
     const dataBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-
     return `${ivBase64}:${dataBase64}`;
   } catch (err) {
-    console.error("Encryption error:", err);
     return "[Encryption Failed]";
   }
 }
 
-// Decrypts incoming Base64 strings back into plain text
 async function decryptText(encryptedPayload) {
   if (!encryptedPayload || !encryptedPayload.includes(":")) return encryptedPayload;
   try {
     const key = await getEncryptionKey();
     const [ivBase64, dataBase64] = encryptedPayload.split(":");
-
-    // Decode Base64 back into raw byte numbers
     const iv = new Uint8Array(atob(ivBase64).split("").map(c => c.charCodeAt(0)));
     const encryptedData = new Uint8Array(atob(dataBase64).split("").map(c => c.charCodeAt(0)));
-
-    const decrypted = await window.crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: iv },
-      key,
-      encryptedData
-    );
-
+    const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, encryptedData);
     return new TextDecoder().decode(decrypted);
   } catch (err) {
-    console.warn("Could not decrypt message (key mismatch or format error).");
     return "[Encrypted Message]";
   }
 }
 
 // ============================================================================
-// WEB_SOCKET EVENT LOOPS
+// 📡 WEB_SOCKET COMMUNICATIONS HANDLER
 // ============================================================================
-const socket = new WebSocket(`ws://localhost:8080/start_web_socket?username=${encodeURIComponent(myUsername)}`);
+const socket = new WebSocket(`ws://${window.location.host}/start_web_socket?username=${encodeURIComponent(myUsername)}`);
 
 socket.onmessage = async function(event) {
   try {
@@ -88,20 +76,34 @@ socket.onmessage = async function(event) {
     if (data.event === "update-users") {
       updateUserList(data.usernames);
     }
+    // Live Incoming Message Handler
     else if (data.event === "send-message") {
       const senderDisplay = (data.username === myUsername) ? "You" : data.username;
-
-      // 🔓 Decrypt the text before putting it on the screen
       const clearTextMessage = await decryptText(data.message);
-      addMessageToChat(senderDisplay, clearTextMessage, data.gifUrl);
+      addMessageToChat(data.id, senderDisplay, clearTextMessage, data.gifUrl);
+    }
+    // 📜 Incoming Chat History Batch Handler
+    else if (data.event === "chat-history") {
+      const conversationBox = document.getElementById("conversation");
+      if (data.messages.length > 0) {
+        conversationBox.replaceChildren(); // clear splash info text
+        for (const msg of data.messages) {
+          const senderDisplay = (msg.sender === myUsername) ? "You" : msg.sender;
+          const clearTextMessage = await decryptText(msg.encrypted_message);
+          addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url);
+        }
+      }
+    }
+    // 🗑️ Live Message Deletion Event Handler
+    else if (data.event === "delete-message") {
+      const targetBubble = document.querySelector(`[data-msg-id="${data.id}"]`);
+      if (targetBubble) {
+        targetBubble.remove();
+      }
     }
   } catch (err) {
-    console.error("Error parsing incoming socket JSON payload:", err);
+    console.error("Inbound routing parsing layout error:", err);
   }
-};
-
-socket.onclose = function(event) {
-  console.log("Disconnected from server. Reason:", event.reason);
 };
 
 function updateUserList(usernames) {
@@ -138,7 +140,7 @@ function updateUserList(usernames) {
   }
 }
 
-function addMessageToChat(username, messageText, gifUrl = null) {
+function addMessageToChat(msgId, username, messageText, gifUrl = null) {
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
@@ -148,7 +150,10 @@ function addMessageToChat(username, messageText, gifUrl = null) {
   const nameSpan = messageClone.querySelector(".sender-name");
   const textParagraph = messageClone.querySelector(".message-text");
   const gifImage = messageClone.querySelector(".message-gif");
+  const deleteBtn = messageClone.querySelector(".delete-btn");
 
+  // Assign internal ID to container element row for live filtering later
+  rowDiv.setAttribute("data-msg-id", msgId);
   nameSpan.textContent = username;
 
   if (gifUrl) {
@@ -161,8 +166,21 @@ function addMessageToChat(username, messageText, gifUrl = null) {
 
   if (username === "You") {
     rowDiv.classList.add("sent");
+    // Wire up delete event button exclusively if it's our message
+    if (deleteBtn) {
+      deleteBtn.style.display = "inline-block";
+      deleteBtn.addEventListener("click", () => {
+        if (confirm("Are you sure you want to delete this message?")) {
+          socket.send(JSON.stringify({
+            event: "delete-message",
+            id: msgId
+          }));
+        }
+      });
+    }
   } else {
     rowDiv.classList.add("received");
+    if (deleteBtn) deleteBtn.remove(); // Remove button element for other users
   }
 
   if (conversationBox.querySelector('h2')) {
@@ -174,42 +192,39 @@ function addMessageToChat(username, messageText, gifUrl = null) {
 }
 
 // ============================================================================
-// GIF DRAWER & EVENTS
+// GIF DRAWER MANAGEMENT
 // ============================================================================
 const gifToggleBtn = document.getElementById("gif-toggle-btn");
 const gifDrawer = document.getElementById("gif-drawer");
 const closeGifBtn = document.getElementById("close-gif-btn");
 const gifGrid = document.getElementById("gif-grid");
 
-gifToggleBtn.addEventListener("click", () => {
-  if (gifDrawer.style.display === "none") {
-    gifDrawer.style.display = "flex";
-    loadOpenAccessGifs();
-  } else {
-    gifDrawer.style.display = "none";
-  }
-});
+if (gifToggleBtn && gifDrawer) {
+  gifToggleBtn.addEventListener("click", () => {
+    if (gifDrawer.style.display === "none" || !gifDrawer.style.display) {
+      gifDrawer.style.display = "flex";
+      loadOpenAccessGifs();
+    } else {
+      gifDrawer.style.display = "none";
+    }
+  });
+}
 
-closeGifBtn.addEventListener("click", () => {
-  gifDrawer.style.display = "none";
-});
+if (closeGifBtn && gifDrawer) {
+  closeGifBtn.addEventListener("click", () => {
+    gifDrawer.style.display = "none";
+  });
+}
 
 function loadOpenAccessGifs() {
+  if (!gifGrid) return;
   gifGrid.replaceChildren();
 
   const stableOpenUrls = [
     "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif",
     "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJpZHhkaWJ1cGtoNTR3dDV2a3I3dnI3YmczOXRpZm5tOGtza3QzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OuQmhmAAdJFLi/giphy.gif",
-    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif",
-    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExa284amJpOTY2cGtqdG96MWpyb3Ntc2t4bWVzMWhsaHg3dDhjZ3FuOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AVP0kPZXRUxjRxCfng/giphy.gif",
-    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHZ3ZnZtcnlmN3ViYXphbmRnY2dsZ3JiNTRjdDliNHUwdTFsZ2MwbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zrxazUScjhxo4/giphy.gif",
-    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3dxZXkxYXFjOWQ4dG54cG5ldW00NTZ3YTQyMHlhcDExa2N6M3V4eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif",
-    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWtkZXV6NTg4aGZubDlwdTJlOHVibjVtaWFmYm1oMHZjY3ZkMWhuZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Irb20yXtA2QStkUnrE/giphy.gif",
-    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTJjdW5vbDJmeThvMDRldzJjNGJma2pvOXlsczBqMzRnMTZsNnVoMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kMZJErKgZtONJZOQE6/giphy.gif",
-    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3Nzd3azA1NDB3YjhiMzlndWZtNGN6MTllem0xMmI1Z25za3dwZGx0aSZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/acgXBmnZjOS0lYImih/giphy.gif",
-    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3E1YjUyaHU1b3AwOHdlcnBlamVqOHlzMmNod3V5eWV2ZnV0MmtkZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/kNpNw0eB1w4qDYA7hS/giphy.gif",
-    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2RiNmtrc254OGUyNHVtcHBoNWVscWh2ZzBodmJ3ZmRiYmQzMGptZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/45Ichy6GhmxZSdgxzC/giphy.gif"
-  ]; //gifs
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif"
+  ];
 
   stableOpenUrls.forEach(url => {
     const img = document.createElement("img");
@@ -221,59 +236,38 @@ function loadOpenAccessGifs() {
     img.style.cursor = "pointer";
 
     img.addEventListener("click", () => {
-      sendGifMessage(url);
-      gifDrawer.style.display = "none";
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ event: "send-message", message: "", gifUrl: url }));
+        gifDrawer.style.display = "none";
+      }
     });
     gifGrid.appendChild(img);
   });
 }
 
-function sendGifMessage(url) {
-  if (socket.readyState === WebSocket.OPEN) {
-    const payload = {
-      event: "send-message",
-      message: "",
-      gifUrl: url
-    };
-    socket.send(JSON.stringify(payload));
-  }
-}
-
 // ============================================================================
-// TRANSMISSION SUBMISSIONS (CORRECTED ASYNC PIPELINE)
+// CHAT FORM SUBMISSION
 // ============================================================================
 const messageInput = document.getElementById("data");
 const chatForm = document.getElementById("form");
 
-chatForm.addEventListener("submit", async (event) => {
+chatForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const messageText = messageInput.value.trim();
 
   if (messageText !== "" && socket.readyState === WebSocket.OPEN) {
     try {
-      // 1. Force execution to pause until encryption finishes scrambling the text
       const encryptedPayload = await encryptText(messageText);
+      if (!encryptedPayload) return;
 
-      // Guard check to make sure encryption yielded valid data
-      if (!encryptedPayload) {
-        console.error("Encryption returned an empty string. Aborting send.");
-        return;
-      }
-
-      // 2. Package the scrambled "ivHex:dataHex" payload string
-      const payload = {
+      socket.send(JSON.stringify({
         event: "send-message",
         message: encryptedPayload,
         gifUrl: null
-      };
-
-      // 3. Dispatch data straight over WebSocket channel
-      socket.send(JSON.stringify(payload));
+      }));
       messageInput.value = "";
-
     } catch (err) {
-      console.error("Critical error during execution submission flow:", err);
+      console.error("Critical error during transmission submission loop:", err);
     }
   }
 });
-

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🗨 Hi Chat — Sign in</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+
+  <div class="night-sky" aria-hidden="true">
+    <div class="stars stars--far"></div>
+    <div class="stars stars--near"></div>
+    <div class="mountains mountains--back"></div>
+    <div class="mountains mountains--front"></div>
+  </div>
+
+  <main class="auth-stage">
+    <section class="auth-card">
+      <header class="auth-card__header">
+        <span class="auth-card__icon">🗨</span>
+        <h1 id="auth-title">Welcome back</h1>
+        <p id="auth-subtitle">Log in to keep chatting</p>
+      </header>
+
+      <p id="auth-message" class="auth-message" role="alert" hidden></p>
+
+      <!-- LOGIN -->
+      <form id="login-form" class="auth-form" novalidate>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" id="login-username" autocomplete="username" required />
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="login-password" autocomplete="current-password" required />
+        </label>
+
+        <label class="remember">
+          <input type="checkbox" id="login-remember" />
+          <span>Remember me</span>
+        </label>
+
+        <button type="submit" class="auth-submit">Log in</button>
+      </form>
+
+      <!-- REGISTER -->
+      <form id="register-form" class="auth-form" novalidate hidden>
+        <label class="field">
+          <span>Choose a username</span>
+          <input type="text" id="register-username" autocomplete="username" required />
+        </label>
+
+        <label class="field">
+          <span>Create a password</span>
+          <input type="password" id="register-password" autocomplete="new-password" required />
+        </label>
+
+        <label class="field">
+          <span>Confirm password</span>
+          <input type="password" id="register-confirm" autocomplete="new-password" required />
+        </label>
+
+        <button type="submit" class="auth-submit">Create account</button>
+      </form>
+
+      <p class="auth-toggle">
+        <span id="toggle-to-register">
+          Don't have an account?
+          <button type="button" class="link-btn" id="show-register">Sign up</button>
+        </span>
+        <span id="toggle-to-login" hidden>
+          Already have an account?
+          <button type="button" class="link-btn" id="show-login">Log in</button>
+        </span>
+      </p>
+    </section>
+  </main>
+
+  <script defer type="module" src="login.js"></script>
+</body>
+</html>
