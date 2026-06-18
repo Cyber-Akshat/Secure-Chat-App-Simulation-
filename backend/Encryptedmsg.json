@@ -1,1 +1,41 @@
-[]
+[
+    {
+        "id": "79350ec09abdf286",
+        "sender": "Mitchell",
+        "recipient": "Gideon",
+        "encrypted_message": "EjJshKZiumvmZaBY:jAhkhZKFnQ5HVzsJiNWBsR1q",
+        "gif_url": null
+    },
+    {
+        "id": "fb01db10a917d4c5",
+        "sender": "Mitchell",
+        "recipient": "Akshat",
+        "encrypted_message": "esFVCCdGUyG6cqjC:C7NNlNjcdRNElZLcZ4Paww8GvFam3XgU",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e1ef44a386361e9e",
+        "sender": "Gideon",
+        "recipient": "Mitchell",
+        "encrypted_message": "gb4gbJL3WUJ3ofOa:HeBHEIm8yDQQJwwwF5DxTP6O",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "b4606d594f2d8ac3",
+        "sender": "Akshat",
+        "recipient": "Gideon",
+        "encrypted_message": "zjWfuLQxQbXzzqJ3:sE8wEgy4Xs0T7bxAQQt1zyCr0w==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "f0d5571d3ac5fa84",
+        "sender": "Akshat",
+        "recipient": "Mitchell",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    }
+]

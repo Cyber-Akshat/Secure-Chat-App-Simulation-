@@ -108,33 +108,22 @@ class ChatServer:
 
             await self.save_to_json_file(msg_id, username, recipient, message_payload, gif_payload)
 
-            # 🔒 Target transmission strictly to the two active nodes
             await self.broadcast_private({
                 "event": "send-message",
                 "id": msg_id,
                 "username": username,
                 "recipient": recipient,
                 "message": message_payload,
-                "gifUrl": gif_payload
+                "gifUrl": gif_payload,
+                "is_deleted": False
             }, sender=username, recipient=recipient)
 
-
-        # 🗑️ Case B: Handling incoming live deletion requests from the frontend button
-
         elif event_type == "delete-message":
-
             msg_id = data.get("id")
-
             if msg_id:
                 await self.delete_from_json_file(msg_id, username)
 
-
-        # 🧹 Case C: Global clear-chat request has been deprecated for safety
-
         elif event_type == "clear-chat":
-
-            # Disabled globally so users can only clear their own local views
-
             pass
 
     async def save_to_json_file(self, msg_id: str, username: str, recipient: str, encrypted_text: str, gif_url: str or None):
@@ -148,9 +137,10 @@ class ChatServer:
             new_entry = {
                 "id": msg_id,
                 "sender": username,
-                "recipient": recipient, # Bind explicitly to database object maps
+                "recipient": recipient,
                 "encrypted_message": encrypted_text,
-                "gif_url": gif_url
+                "gif_url": gif_url,
+                "is_deleted": False
             }
             logs.append(new_entry)
 
@@ -158,6 +148,7 @@ class ChatServer:
                 json.dump(logs, f, indent=4, ensure_ascii=False)
 
     async def delete_from_json_file(self, msg_id: str, username: str):
+        """Marks a message as deleted in storage instead of erasing the item row."""
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -168,12 +159,16 @@ class ChatServer:
             target_msg = next((m for m in logs if m.get("id") == msg_id), None)
 
             if target_msg and target_msg.get("sender") == username:
-                logs = [m for m in logs if m.get("id") != msg_id]
+                # Mark as deleted and wipe encrypted data safely
+                target_msg["is_deleted"] = True
+                target_msg["encrypted_message"] = ""
+                target_msg["gif_url"] = None
                 recipient = target_msg.get("recipient")
 
                 with open(self.storage_file, "w", encoding="utf-8") as f:
                     json.dump(logs, f, indent=4, ensure_ascii=False)
 
+                # Broadcast delete status to private participants
                 await self.broadcast_private({
                     "event": "delete-message",
                     "id": msg_id
@@ -189,7 +184,6 @@ class ChatServer:
         await self.broadcast_global({"event": "update-users", "usernames": usernames})
 
     async def broadcast_private(self, message: dict, sender: str, recipient: str):
-        """Dispatches data only to the explicit sender and receiver connection objects."""
         message_string = json.dumps(message)
         for user in [sender, recipient]:
             client = self.connected_clients.get(user)

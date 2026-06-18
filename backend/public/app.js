@@ -85,7 +85,8 @@ socket.onmessage = async function(event) {
         sender: data.username,
         recipient: data.recipient,
         encrypted_message: data.message,
-        gif_url: data.gifUrl
+        gif_url: data.gifUrl,
+        is_deleted: data.is_deleted || false
       });
       await renderConversation();
     }
@@ -100,9 +101,14 @@ socket.onmessage = async function(event) {
       addMessageToChat(systemId, "System Guard", data.message, null);
       return;
     }
-    // 🗑️ Live Message Deletion Event Handler
+    // 🗑️ Live Message Deletion Interceptor (Marks instead of deleting completely)
     else if (data.event === "delete-message") {
-      allChatLogs = allChatLogs.filter(msg => msg.id !== data.id);
+      const targetMsg = allChatLogs.find(msg => msg.id === data.id);
+      if (targetMsg) {
+        targetMsg.is_deleted = true;
+        targetMsg.encrypted_message = "";
+        targetMsg.gif_url = null;
+      }
       await renderConversation();
     }
     // 🧹 GLOBAL PURGE INTERCEPTION
@@ -174,7 +180,7 @@ function updateUserList(usernames) {
     myItem.style.width = "100%";
     myItem.style.padding = "8px";
     myItem.style.borderRadius = "6px";
-    myItem.style.opacity = "0.85"; // Gives a slight visual distinction
+    myItem.style.opacity = "0.85";
 
     const myAvatar = document.createElement("img");
     myAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(myUsername)}&background=9333ea&color=fff&rounded=true&size=32`;
@@ -206,7 +212,6 @@ async function renderConversation() {
   if (!conversationBox) return;
   conversationBox.replaceChildren();
 
-  // If no user clicked yet, fall back to showing your splash screen logo loop
   if (!activeRecipient) {
     const welcomeDiv = document.createElement("div");
     welcomeDiv.className = "welcome-placeholder";
@@ -220,7 +225,6 @@ async function renderConversation() {
     return;
   }
 
-  // Filter conditions: (Me -> Them) OR (Them -> Me)
   const privateThread = allChatLogs.filter(msg =>
     (msg.sender === myUsername && msg.recipient === activeRecipient) ||
     (msg.sender === activeRecipient && msg.recipient === myUsername)
@@ -228,12 +232,18 @@ async function renderConversation() {
 
   for (const msg of privateThread) {
     const senderDisplay = (msg.sender === myUsername) ? "You" : msg.sender;
-    const clearTextMessage = await decryptText(msg.encrypted_message);
-    addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url);
+
+    // Check if the message has been marked as deleted
+    if (msg.is_deleted) {
+      addMessageToChat(msg.id, senderDisplay, "This message has been deleted", null, true);
+    } else {
+      const clearTextMessage = await decryptText(msg.encrypted_message);
+      addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url, false);
+    }
   }
 }
 
-function addMessageToChat(msgId, username, messageText, gifUrl = null) {
+function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted = false) {
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
@@ -252,7 +262,7 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
   rowDiv.setAttribute("data-msg-id", msgId);
   nameSpan.textContent = username;
 
-  if (gifUrl) {
+  if (gifUrl && !isDeleted) {
     gifImage.src = gifUrl;
     gifImage.style.display = "block";
     textParagraph.style.display = messageText ? "block" : "none";
@@ -260,9 +270,16 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
 
   textParagraph.textContent = messageText || "";
 
+  // Style deleted text differently if preferred (italicized)
+  if (isDeleted) {
+    textParagraph.style.fontStyle = "italic";
+    textParagraph.style.opacity = "0.7";
+  }
+
   if (username === "You") {
     rowDiv.classList.add("sent");
-    if (deleteBtn) {
+    // Only display delete button if it hasn't been deleted already
+    if (deleteBtn && !isDeleted) {
       deleteBtn.style.display = "inline-block";
       deleteBtn.addEventListener("click", () => {
         if (confirm("Are you sure you want to delete this message?")) {
@@ -272,6 +289,8 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
           }));
         }
       });
+    } else if (deleteBtn) {
+      deleteBtn.remove();
     }
   } else {
     rowDiv.classList.add("received");
@@ -292,13 +311,10 @@ document.getElementById("clear-btn")?.addEventListener("click", () => {
   }
 
   if (confirm(`Are you sure you want to clear your conversation history with ${activeRecipient}? This will only clear it on your screen.`)) {
-    // Filter out and remove only the messages between you and the active recipient locally
     allChatLogs = allChatLogs.filter(msg =>
       !((msg.sender === myUsername && msg.recipient === activeRecipient) ||
         (msg.sender === activeRecipient && msg.recipient === myUsername))
     );
-
-    // Re-render the conversation area to reflect your cleared screen instantly
     renderConversation();
   }
 });
