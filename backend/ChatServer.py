@@ -1,134 +1,169 @@
 import json
 import os
+import asyncio
+import secrets
 from fastapi import WebSocket, WebSocketDisconnect
 
 
 class ChatServer:
     def __init__(self):
-        # Dictionary structure tracking live connected users: { "username": WebSocket }
         self.connected_clients: dict[str, WebSocket] = {}
+        # Mutex lock prevents file corruption during simultaneous edits
+        self.file_lock = asyncio.Lock()
+        self.storage_file = "Encryptedmsg.json"
 
-        # Define the path for your human-readable users.json storage file
-        self.json_file_path = os.path.join(os.getcwd(), "users.json")
-
-        # Automatically make sure the JSON file exists on boot
-        self.init_json_file()
-
-    def init_json_file(self):
-        """Creates the users.json file with an empty list if it doesn't exist yet."""
-        if not os.path.exists(self.json_file_path):
-            with open(self.json_file_path, "w") as file:
-                json.dump([], file, indent=4)
-            print("Created a fresh users.json file!")
-        else:
-            print("Found existing users.json file.")
-
-    def save_user_to_json(self, username: str):
-        """Reads the JSON file, adds the new username if unique, and saves it back."""
-        try:
-            # 1. Open and read the current list of users
-            with open(self.json_file_path, "r") as file:
-                registered_users = json.load(file)
-
-            # 2. Add the username if it isn't already in the list
-            if username not in registered_users:
-                registered_users.append(username)
-
-                # 3. Write the updated list back to the file with clean text indents
-                with open(self.json_file_path, "w") as file:
-                    json.dump(registered_users, file, indent=4)
-                print(f"Physically saved '{username}' into users.json!")
-            else:
-                print(f"User '{username}' was already registered in users.json.")
-
-        except Exception as e:
-            print(f"Error writing to JSON file: {e}")
+        # Initialize JSON file if it's missing
+        if not os.path.exists(self.storage_file):
+            with open(self.storage_file, "w", encoding="utf-8") as f:
+                json.dump([], f)
 
     async def handle_connection(self, websocket: WebSocket):
-        """Manages the full lifecycle of a single user connecting via WebSockets."""
         username = websocket.query_params.get("username")
 
-        import re
-
-        # Validation Check 1: Reject usernames containing HTML or illegal characters
-        if not re.match(r'^[a-zA-Z0-9_\-]{1,30}$', username):
-            await websocket.close(code=1003, reason="Username contains invalid characters.")
-            return
-
-        # Validation Check 2: Did they provide a username?
         if not username:
-            await websocket.close(code=1003, reason="Username is required.")
+            await websocket.close(code=1003, reason="Username is required")
             return
 
-        # Validation Check 3: Is someone already logged into this username right now?
         if username in self.connected_clients:
-            await websocket.close(code=1008, reason=f"Username '{username}' is already online.")
+            await websocket.close(code=1008, reason=f"Username {username} is already taken")
             return
 
-        # Accept the connection handshake
         await websocket.accept()
-
-        # Physically save the username into your text-based users.json file
-        self.save_user_to_json(username)
-
-        # Map the active WebSocket stream into our active global tracking list
         self.connected_clients[username] = websocket
-        print(f"Client connected: {username}")
+        print(f"New client connected: {username}")
 
-        # Broadcast the new online user list out to all active panels
         await self.broadcast_usernames()
 
+        # Send full text history to this user immediately on connection
+        await self.send_chat_history(websocket)
+
         try:
-            # Main event listening loop keeping the socket connection open
             while True:
                 raw_message = await websocket.receive_text()
                 await self.receive_message(username, raw_message)
-
         except WebSocketDisconnect:
-            # Gracefully clear out profiles if their browser tab closes
             await self.client_disconnected(username)
 
+    async def send_chat_history(self, websocket: WebSocket):
+        """Dispatches all stored conversation entries directly to a single connection."""
+        async with self.file_lock:
+            try:
+                with open(self.storage_file, "r", encoding="utf-8") as f:
+                    logs = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                logs = []
+
+        await websocket.send_text(json.dumps({
+            "event": "chat-history",
+            "messages": logs
+        }))
+
     async def receive_message(self, username: str, raw_message: str):
-        """Parses and distributes incoming chat messages."""
         try:
             data = json.loads(raw_message)
         except json.JSONDecodeError:
-            return  # Safely ignore bad text streams
-
-        if data.get("event") != "send-message":
             return
 
-        # Broadcast the sanitized text out to every single person in the chat
+        event_type = data.get("event")
+
+        # Handle incoming normal messages
+        if event_type == "send-message":
+            msg_id = secrets.token_hex(8)
+            message_payload = data.get("message", "")
+            gif_payload = data.get("gifUrl")
+
+            await self.save_to_json_file(msg_id, username, message_payload, gif_payload)
+
+            await self.broadcast({
+                "event": "send-message",
+                "id": msg_id,
+                "username": username,
+                "message": message_payload,
+                "gifUrl": gif_payload
+            })
+
+        # Handle single message deletion requests
+        elif event_type == "delete-message":
+            msg_id = data.get("id")
+            if msg_id:
+                await self.delete_from_json_file(msg_id, username)
+
+        # Handle complete chat clear requests
+        elif event_type == "clear-chat":
+            await self.clear_all_chat_logs()
+
+    async def save_to_json_file(self, msg_id: str, username: str, encrypted_text: str, gif_url: str or None):
+        """Safely saves a message entry to Encryptedmsg.json."""
+        async with self.file_lock:
+            try:
+                with open(self.storage_file, "r", encoding="utf-8") as f:
+                    logs = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                logs = []
+
+            new_entry = {
+                "id": msg_id,
+                "sender": username,
+                "encrypted_message": encrypted_text,
+                "gif_url": gif_url
+            }
+            logs.append(new_entry)
+
+            with open(self.storage_file, "w", encoding="utf-8") as f:
+                json.dump(logs, f, indent=4, ensure_ascii=False)
+
+    async def delete_from_json_file(self, msg_id: str, username: str):
+        """Deletes a single target message from the JSON file if the sender matches."""
+        async with self.file_lock:
+            try:
+                with open(self.storage_file, "r", encoding="utf-8") as f:
+                    logs = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                return
+
+            target_msg = next((m for m in logs if m.get("id") == msg_id), None)
+
+            if target_msg and target_msg.get("sender") == username:
+                logs = [m for m in logs if m.get("id") != msg_id]
+
+                with open(self.storage_file, "w", encoding="utf-8") as f:
+                    json.dump(logs, f, indent=4, ensure_ascii=False)
+
+                await self.broadcast({
+                    "event": "delete-message",
+                    "id": msg_id
+                })
+
+    async def clear_all_chat_logs(self):
+        """Purges the entire JSON storage database file and tells all browsers to clear UI."""
+        async with self.file_lock:
+            try:
+                with open(self.storage_file, "w", encoding="utf-8") as f:
+                    json.dump([], f)  # Wipes file back down to an empty list array
+            except Exception as e:
+                print(f"Error resetting chat log file: {e}")
+                return
+
+        # Broadcast clear signifier event packet out to all active clients
         await self.broadcast({
-            "event": "send-message",
-            "username": username,
-            "message": data.get("message"),
+            "event": "clear-chat"
         })
 
     async def client_disconnected(self, username: str):
-        """Removes user from the active memory collection on drop."""
         if username in self.connected_clients:
             del self.connected_clients[username]
 
-        print(f"Client disconnected: {username}")
-        # Refresh everyone's active sidebar list panel
         await self.broadcast_usernames()
+        print(f"Client {username} disconnected")
 
     async def broadcast_usernames(self):
-        """Compiles and broadcasts the live array list of online users."""
         usernames = list(self.connected_clients.keys())
-        await self.broadcast({
-            "event": "update-users",
-            "usernames": usernames
-        })
+        await self.broadcast({"event": "update-users", "usernames": usernames})
 
     async def broadcast(self, message: dict):
-        """Utility wrapper safely shipping JSON text strings out to all listeners."""
         message_string = json.dumps(message)
-
-        for client_ws in list(self.connected_clients.values()):
+        for client in list(self.connected_clients.values()):
             try:
-                await client_ws.send_text(message_string)
+                await client.send_text(message_string)
             except Exception:
-                # Catch closed socket write exceptions safely to keep the server running
                 pass

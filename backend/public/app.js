@@ -1,56 +1,113 @@
-// ============================================================================
-// LIVE WEB_SOCKET CONNECTION & CONFIGURATION
-// ============================================================================
-
-// 1. Prompt the user for a username immediately upon landing
-// 1. Prompt the user for a username and strip any HTML tags / special characters
 function sanitizeUsername(raw) {
-  // Remove any HTML tags entirely
+  if (!raw) return "";
   const noTags = raw.replace(/<[^>]*>/g, "");
-  // Allow only alphanumeric characters, underscores, and hyphens (max 30 chars)
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
 
-const rawInput = prompt("Enter your username for Hi Chat:") ?? "";
-const myUsername = sanitizeUsername(rawInput) || "User_" + Math.floor(Math.random() * 1000);
+// ============================================================================
+// 🔐 SESSION MONITOR PIPELINE
+// ============================================================================
+const storedUsername = sessionStorage.getItem("hichat_username") || localStorage.getItem("hichat_username");
 
-// 2. Connect to your FastAPI Python endpoint passing the username as a query param
-const socket = new WebSocket(`ws://localhost:8080/start_web_socket?username=${encodeURIComponent(myUsername)}`);
+if (!storedUsername) {
+  window.location.href = "login.html";
+  throw new Error("Missing login authorization data — routing back to login page.");
+}
 
-// 3. Listen for incoming live events from your ChatServer.py
-socket.onmessage = function(event) {
+const myUsername = sanitizeUsername(storedUsername);
+
+document.getElementById("logout-btn")?.addEventListener("click", () => {
+  sessionStorage.removeItem("hichat_username");
+  localStorage.removeItem("hichat_username");
+  window.location.href = "login.html";
+});
+
+// ============================================================================
+// 🔒 END-TO-END CRYPTO ENGINE (AES-GCM SYSTEM)
+// ============================================================================
+const ENCRYPTION_PASSPHRASE = "SuperSecretChatRoomKey123!";
+
+async function getEncryptionKey() {
+  const enc = new TextEncoder();
+  const hashedKeyMaterial = await window.crypto.subtle.digest("SHA-256", enc.encode(ENCRYPTION_PASSPHRASE));
+  return await window.crypto.subtle.importKey(
+    "raw", hashedKeyMaterial, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]
+  );
+}
+
+async function encryptText(plainText) {
+  if (!plainText) return "";
+  try {
+    const key = await getEncryptionKey();
+    const enc = new TextEncoder();
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, enc.encode(plainText));
+    const ivBase64 = btoa(String.fromCharCode(...iv));
+    const dataBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+    return `${ivBase64}:${dataBase64}`;
+  } catch (err) {
+    return "[Encryption Failed]";
+  }
+}
+
+async function decryptText(encryptedPayload) {
+  if (!encryptedPayload || !encryptedPayload.includes(":")) return encryptedPayload;
+  try {
+    const key = await getEncryptionKey();
+    const [ivBase64, dataBase64] = encryptedPayload.split(":");
+    const iv = new Uint8Array(atob(ivBase64).split("").map(c => c.charCodeAt(0)));
+    const encryptedData = new Uint8Array(atob(dataBase64).split("").map(c => c.charCodeAt(0)));
+    const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, encryptedData);
+    return new TextDecoder().decode(decrypted);
+  } catch (err) {
+    return "[Encrypted Message]";
+  }
+}
+
+// ============================================================================
+// 📡 WEB_SOCKET CLIENT PROCESSING STREAM LOOPS
+// ============================================================================
+const socket = new WebSocket(`ws://${window.location.host}/start_web_socket?username=${encodeURIComponent(myUsername)}`);
+
+socket.onmessage = async function(event) {
   try {
     const data = JSON.parse(event.data);
 
     if (data.event === "update-users") {
-      // Feed the real array of connected users into your list-builder function
       updateUserList(data.usernames);
     }
     else if (data.event === "send-message") {
-      // Display the real message. Check if sender matches current user.
-      const senderDisplay = (data.username === myUsername) ? "You" : data.username;
-      addMessageToChat(senderDisplay, data.message);
+      const clearTextMessage = await decryptText(data.message);
+      addMessageToChat(data.id, data.username, clearTextMessage, data.gifUrl);
+    }
+    else if (data.event === "chat-history") {
+      const conversationBox = document.getElementById("conversation");
+      if (data.messages.length > 0) {
+        conversationBox.replaceChildren(); // clear welcome splash
+        for (const msg of data.messages) {
+          const clearTextMessage = await decryptText(msg.encrypted_message);
+          addMessageToChat(msg.id, msg.sender, clearTextMessage, msg.gif_url);
+        }
+      }
+    }
+    else if (data.event === "delete-message") {
+      const targetElement = document.getElementById(`msg-row-${data.id}`);
+      if (targetElement) {
+        targetElement.remove();
+      }
+    }
+    // 🧹 Live real-time absolute container wipe handler event
+    else if (data.event === "clear-chat") {
+      resetChatWindowToDefaultWelcome();
     }
   } catch (err) {
-    console.error("Error parsing incoming socket JSON payload:", err);
+    console.error("UI stream processing loop execution error:", err);
   }
 };
 
-socket.onclose = function(event) {
-  console.log("Disconnected from server. Reason:", event.reason);
-  showUserIsTyping("SYSTEM: Server connection lost");
-};
-
-// ============================================================================
-// ONLINE USERS FUNCTIONS
-// ============================================================================
-
-// Updates the list of online users with status indicators and clean circular profile avatars
 function updateUserList(usernames) {
   const userList = document.getElementById("users");
   if (!userList) return;
-
-  // Remove old nodes before rebuilding
   userList.replaceChildren();
 
   for (const username of usernames) {
@@ -59,32 +116,22 @@ function updateUserList(usernames) {
     listItem.style.alignItems = "center";
     listItem.style.width = "100%";
 
-    // 1. Generate a circular avatar using the user's initials
     const avatarImg = document.createElement("img");
     avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff&rounded=true&size=32`;
-    avatarImg.alt = `${username}'s avatar`;
     avatarImg.style.width = "32px";
     avatarImg.style.height = "32px";
     avatarImg.style.marginRight = "12px";
-    avatarImg.style.display = "block";
 
-    // 2. Setup text name layout
     const nameSpan = document.createElement("span");
-    // Show a marker if the list item is the active client
     nameSpan.textContent = (username === myUsername) ? `${username} (You)` : username;
     nameSpan.style.flex = "1";
 
-    // 3. Status indicator dot node
     const statusDot = document.createElement("span");
     statusDot.style.width = "8px";
     statusDot.style.height = "8px";
-    statusDot.style.backgroundColor = "#10b981"; // Emerald Green
+    statusDot.style.backgroundColor = "#10b981";
     statusDot.style.borderRadius = "50%";
-    statusDot.style.display = "inline-block";
 
-    listItem.setAttribute("title", `${username} is connected and active.`);
-
-    // Attach elements to list container
     listItem.appendChild(avatarImg);
     listItem.appendChild(nameSpan);
     listItem.appendChild(statusDot);
@@ -92,29 +139,7 @@ function updateUserList(usernames) {
   }
 }
 
-// ============================================================================
-// TYPING INDICATOR FUNCTIONS
-// ============================================================================
-
-function showUserIsTyping(username) {
-  const typingIndicator = document.getElementById("typing-indicator");
-  if (typingIndicator) {
-    typingIndicator.textContent = `${username} is typing...`;
-  }
-}
-
-function clearTypingIndicator() {
-  const typingIndicator = document.getElementById("typing-indicator");
-  if (typingIndicator) {
-    typingIndicator.textContent = "";
-  }
-}
-
-// ============================================================================
-// CHAT CONVERSATION FUNCTIONS
-// ============================================================================
-
-function addMessageToChat(username, messageText) {
+function addMessageToChat(msgId, senderUsername, messageText, gifUrl = null) {
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
@@ -123,19 +148,44 @@ function addMessageToChat(username, messageText) {
   const rowDiv = messageClone.querySelector(".message-row");
   const nameSpan = messageClone.querySelector(".sender-name");
   const textParagraph = messageClone.querySelector(".message-text");
+  const gifImage = messageClone.querySelector(".message-gif");
+  const deleteBtn = messageClone.querySelector(".delete-btn");
 
-  nameSpan.textContent = username;
-  textParagraph.textContent = messageText;
-
-  // Assign bubble styling based on identity
-  if (username === "You") {
-    rowDiv.classList.add("sent");
-  } else {
-    rowDiv.classList.add("received");
+  if (rowDiv) {
+    rowDiv.id = `msg-row-${msgId}`;
   }
 
-  // Clear out the startup "Welcome" layout banner if this is the first message
-  if (conversationBox.querySelector('h2')) {
+  const isMe = (senderUsername === myUsername);
+  nameSpan.textContent = isMe ? "You" : senderUsername;
+
+  if (gifUrl) {
+    gifImage.src = gifUrl;
+    gifImage.style.display = "block";
+    textParagraph.style.display = messageText ? "block" : "none";
+  }
+
+  textParagraph.textContent = messageText || "";
+
+  if (isMe) {
+    rowDiv.classList.add("sent");
+    if (deleteBtn) {
+      deleteBtn.style.display = "inline-block";
+      deleteBtn.addEventListener("click", () => {
+        if (confirm("Are you sure you want to permanently delete this message?")) {
+          socket.send(JSON.stringify({
+            event: "delete-message",
+            id: msgId
+          }));
+        }
+      });
+    }
+  } else {
+    rowDiv.classList.add("received");
+    if (deleteBtn) deleteBtn.remove();
+  }
+
+  // Remove the welcome message placeholder card structure before adding normal text row elements
+  if (conversationBox.querySelector('.welcome-placeholder')) {
     conversationBox.replaceChildren();
   }
 
@@ -143,42 +193,106 @@ function addMessageToChat(username, messageText) {
   conversationBox.scrollTop = conversationBox.scrollHeight;
 }
 
-// ============================================================================
-// EVENT LISTENERS & FORM TRANSMISSION
-// ============================================================================
+function resetChatWindowToDefaultWelcome() {
+  const conversationBox = document.getElementById("conversation");
+  if (!conversationBox) return;
 
-const messageInput = document.getElementById("data");
-const chatForm = document.getElementById("form");
-let typingTimeout;
+  conversationBox.innerHTML = `
+    <div class="welcome-placeholder" style="text-align: center; margin-top: 20px;">
+      <h2 style="color: #333d47; margin-bottom: 8px;">Welcome to Hi Chat</h2>
+      <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below.</p>
+    </div>
+  `;
+}
 
-messageInput.addEventListener("input", () => {
-  console.log("You are typing...");
-  clearTimeout(typingTimeout);
-
-  typingTimeout = setTimeout(() => {
-    console.log("You stopped typing.");
-  }, 1500);
+// Wire up the new clear chat button listener action pipeline
+document.getElementById("clear-btn")?.addEventListener("click", () => {
+  if (confirm("🚨 WARNING: Are you sure you want to completely clear the chat room history for EVERYONE? This cannot be undone!")) {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        event: "clear-chat"
+      }));
+    }
+  }
 });
 
-// Sends the real content up to the Python Server via WebSockets
-chatForm.addEventListener("submit", (event) => {
+// ============================================================================
+// GIF DRAW PANEL LOGIC
+// ============================================================================
+const gifToggleBtn = document.getElementById("gif-toggle-btn");
+const gifDrawer = document.getElementById("gif-drawer");
+const closeGifBtn = document.getElementById("close-gif-btn");
+const gifGrid = document.getElementById("gif-grid");
+
+if (gifToggleBtn && gifDrawer) {
+  gifToggleBtn.addEventListener("click", () => {
+    if (gifDrawer.style.display === "none" || !gifDrawer.style.display) {
+      gifDrawer.style.display = "flex";
+      loadOpenAccessGifs();
+    } else {
+      gifDrawer.style.display = "none";
+    }
+  });
+}
+
+if (closeGifBtn && gifDrawer) {
+  closeGifBtn.addEventListener("click", () => {
+    gifDrawer.style.display = "none";
+  });
+}
+
+function loadOpenAccessGifs() {
+  if (!gifGrid) return;
+  gifGrid.replaceChildren();
+
+  const stableOpenUrls = [
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJpZHhkaWJ1cGtoNTR3dDV2a3I3dnI3YmczOXRpZm5tOGtza3QzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OuQmhmAAdJFLi/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif"
+  ];
+
+  stableOpenUrls.forEach(url => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.style.width = "100%";
+    img.style.height = "90px";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "4px";
+    img.style.cursor = "pointer";
+
+    img.addEventListener("click", () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ event: "send-message", message: "", gifUrl: url }));
+        gifDrawer.style.display = "none";
+      }
+    });
+    gifGrid.appendChild(img);
+  });
+}
+
+// ============================================================================
+// CHAT FORM SUBMISSION ENGINE
+// ============================================================================
+const messageInput = document.getElementById("data");
+const chatForm = document.getElementById("form");
+
+chatForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const messageText = messageInput.value.trim();
 
-  // Ensure message isn't blank and socket is open
   if (messageText !== "" && socket.readyState === WebSocket.OPEN) {
+    try {
+      const encryptedPayload = await encryptText(messageText);
+      if (!encryptedPayload) return;
 
-    // Construct the explicit JSON structure ChatServer.py requires
-    const payload = {
-      event: "send-message",
-      message: messageText
-    };
-
-    // Ship it to the server!
-    socket.send(JSON.stringify(payload));
-
-    // Reset our text input UI field
-    messageInput.value = "";
-    clearTimeout(typingTimeout);
+      socket.send(JSON.stringify({
+        event: "send-message",
+        message: encryptedPayload,
+        gifUrl: null
+      }));
+      messageInput.value = "";
+    } catch (err) {
+      console.error("Critical error processing encryption packet dispatch stream:", err);
+    }
   }
 });

@@ -1,0 +1,265 @@
+/* ============================================================================
+   LOGIN PAGE — NIGHT SKY THEME
+   ============================================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0c0a1f;
+}
+
+/* ----------------------------------------------------------------------------
+   BACKGROUND SCENE
+   ---------------------------------------------------------------------------- */
+.night-sky {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0820 0%, #1c1240 45%, #3c2a73 75%, #5b3f9e 100%);
+  overflow: hidden;
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+}
+
+.stars--far {
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 30% 65%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 50% 15%, #fff, transparent),
+    radial-gradient(1px 1px at 68% 40%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 80% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 92% 25%, #fff, transparent),
+    radial-gradient(1px 1px at 15% 85%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40% 45%, #fff, transparent);
+  background-size: 600px 600px;
+  opacity: 0.5;
+  animation: twinkle 5s ease-in-out infinite alternate;
+}
+
+.stars--near {
+  background-image:
+    radial-gradient(2px 2px at 22% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 47% 55%, #fff, transparent),
+    radial-gradient(2px 2px at 63% 18%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 78% 60%, #fff, transparent),
+    radial-gradient(2px 2px at 90% 40%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 8% 55%, #fff, transparent);
+  background-size: 450px 450px;
+  opacity: 0.85;
+  animation: twinkle 3.2s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.3; }
+  to   { opacity: 0.95; }
+}
+
+.mountains {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.mountains--back {
+  height: 42%;
+  background: #2c2160;
+  opacity: 0.85;
+  clip-path: polygon(
+    0% 100%, 0% 65%, 8% 48%, 18% 60%, 28% 35%,
+    40% 55%, 52% 28%, 64% 50%, 76% 22%, 88% 46%,
+    100% 32%, 100% 100%
+  );
+}
+
+.mountains--front {
+  height: 30%;
+  background: #181030;
+  clip-path: polygon(
+    0% 100%, 0% 75%, 12% 52%, 24% 70%, 36% 40%,
+    48% 65%, 60% 35%, 74% 60%, 86% 30%, 100% 55%,
+    100% 100%
+  );
+}
+
+/* ----------------------------------------------------------------------------
+   AUTH CARD
+   ---------------------------------------------------------------------------- */
+.auth-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 36px 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  color: #f1edff;
+}
+
+.auth-card__header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-card__icon {
+  display: inline-block;
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+.auth-card__header h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.auth-card__header p {
+  font-size: 0.85rem;
+  color: rgba(241, 237, 255, 0.65);
+}
+
+.auth-message {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.auth-message.error {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+.auth-message.success {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #bbf7d0;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: rgba(241, 237, 255, 0.75);
+}
+
+.field input {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+  color: #f1edff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.field input::placeholder {
+  color: rgba(241, 237, 255, 0.4);
+}
+
+.field input:focus {
+  border-color: #8b7bff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: rgba(241, 237, 255, 0.65);
+  cursor: pointer;
+}
+
+.remember input {
+  width: 15px;
+  height: 15px;
+  accent-color: #8b7bff;
+}
+
+.auth-submit {
+  margin-top: 4px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c5cff, #5b3fd8);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.auth-submit:hover {
+  box-shadow: 0 10px 24px rgba(124, 92, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.auth-submit:active {
+  transform: translateY(0);
+}
+
+.auth-toggle {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: rgba(241, 237, 255, 0.65);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #b3a4ff;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stars--far, .stars--near {
+    animation: none;
+  }
+}

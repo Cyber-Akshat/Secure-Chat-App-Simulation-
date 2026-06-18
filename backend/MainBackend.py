@@ -1,43 +1,59 @@
 import os
 import uvicorn
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi.responses import FileResponse, RedirectResponse  # Added RedirectResponse
+from pydantic import BaseModel
 
-# Assuming you have a chat_server.py file with a ChatServer class
 from ChatServer import ChatServer
+import auth
 
-# Creates the app, sets the port, and uses the ChatServer object
 app = FastAPI()
 port = 8080
 server = ChatServer()
 
 
-# Checks for connections at start_web_socket and hands the connection
-# to server.handle_connection() to manage messaging
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/api/register")
+async def register(payload: AuthRequest):
+    result = auth.register_user(payload.username, payload.password)
+    if not result["ok"]:
+        raise HTTPException(status_code=409, detail=result["message"])
+    return {"message": result["message"]}
+
+
+@app.post("/api/login")
+async def login(payload: AuthRequest):
+    result = auth.verify_user(payload.username, payload.password)
+    if not result["ok"]:
+        raise HTTPException(status_code=401, detail=result["message"])
+    return {"message": result["message"], "username": payload.username.strip()}
+
+
 @app.websocket("/start_web_socket")
 async def websocket_endpoint(websocket: WebSocket):
-    # In FastAPI, WebSocket connections must be explicitly accepted.
-    # Your ChatServer.handle_connection method should call `await websocket.accept()`
     await server.handle_connection(websocket)
 
 
-# catches all get requests and tries to serve the requested file which gets returned
-# directly - if not, the file falls back to public/index.html
+# FIX: Explicitly intercept root hits and redirect to the purple login screen
+@app.get("/")
+async def root_redirect():
+    return RedirectResponse(url="/login.html")
+
+
 @app.get("/{catchall:path}")
 async def serve_files(catchall: str):
-    # Look for the file falls back inside the public directory
-    file_path = os.path.join(os.getcwd(), "public" ,catchall)
-
-    # If the exact requested file exists, serve it
+    file_path = os.path.join(os.getcwd(), "public", catchall)
     if catchall and os.path.isfile(file_path):
         return FileResponse(file_path)
 
-    # Otherwise, default to serving the index.html
-    index_path = os.path.join(os.getcwd(), "public", "index.html")
-    return FileResponse(index_path)
+    return FileResponse(os.path.join(os.getcwd(), "public", "index.html"))
 
 
+# running the server
 if __name__ == "__main__":
-    print(f"Listening at http://localhost:{port}")
-    # Starts the server using uvicorn
+    print(f"Server running at http://localhost:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port)

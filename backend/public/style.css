@@ -273,3 +273,61 @@ main#content {
   flex-shrink: 0;
   margin-left: auto; /* Solid safety fallback to lock the dot on the right margin */
 }
+
+#attach-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#attach-btn:hover {
+  transform: scale(1.1);
+}
+
+/* ============================================================================
+   MODERN CHAT ACTION ACTION BUTTONS
+   ============================================================================ */
+
+.chat-gif-button {
+  background-color: #f0f2f5;           /* Light grey chat accent matching input fields */
+  border: 1px solid #ccd0d5;           /* Soft clean framing border */
+  color: #54656f;                      /* Balanced dark grey text tint */
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;                    /* Makes "GIF" bold and clean */
+  letter-spacing: 0.5px;
+
+  padding: 0 16px;                     /* Comfortable horizontal tapping padding */
+  height: 40px;                        /* Matches the standard chat input line height */
+  border-radius: 20px;                 /* Pill-shaped design */
+
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;    /* Smooth hover animation fading speeds */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover State - Changes background and text color when mouse rolls over it */
+.chat-gif-button:hover {
+  background-color: #e4e6eb;           /* Darkens slightly on hover */
+  color: #00a884;                      /* Changes text color to an Emerald Teal accent */
+  border-color: #00a884;               /* Frame glows teal along with text */
+  transform: translateY(-1px);         /* Micro-lift effect */
+}
+
+/* Active Click State - Adds immediate tactile feedback when pressed down */
+.chat-gif-button:active {
+  transform: translateY(1px);          /* depresses slightly down */
+  background-color: #d8dadf;
+}
+
+/* Optional Focus Outline - Helps keyboard accessibility navigation frames */
+.chat-gif-button:focus {
+  outline: 2px solid rgba(0, 168, 132, 0.3);
+  outline-offset: 2px;
+}
