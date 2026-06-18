@@ -1,5 +1,7 @@
 [
     {
-        "username": "gideon",
+        "username": "akshat",
+        "salt": "eaaf1ee2650fdf06ac827073ad8f72bb",
+        "password_hash": "5c3150634a8ad5b7c75d38ecf26e2592ed1e33b144601d3e376990aaca7eb5fc"
     }
 ]

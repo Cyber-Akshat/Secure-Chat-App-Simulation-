@@ -107,11 +107,22 @@ socket.onmessage = async function(event) {
         targetBubble.remove();
       }
     }
-    // 🧹 GLOBAL PURGE INTERCEPTION: Listens for the backend confirmation broadcast
+    // 🧹 GLOBAL PURGE INTERCEPTION: Empties chat AND cleanly displays the large logo again
     else if (data.event === "clear-all-messages") {
       const conversationBox = document.getElementById("conversation");
       if (conversationBox) {
-        conversationBox.replaceChildren(); // Empties the chat container clean for everyone online!
+        conversationBox.replaceChildren();
+
+        const welcomeDiv = document.createElement("div");
+        welcomeDiv.className = "welcome-placeholder";
+        welcomeDiv.style.textAlign = "center";
+        welcomeDiv.style.marginTop = "20px";
+        welcomeDiv.innerHTML = `
+              <h2 style="color: #333d47; margin-bottom: 8px;"><img src="C-removebg-preview.png" height="500" width="auto"></h2>
+          </h2>
+          <p style="color: #8c96a3; font-size: 0.95rem;">Messages will appear down below.</p>
+        `;
+        conversationBox.appendChild(welcomeDiv);
       }
     }
   } catch (err) {
@@ -158,6 +169,11 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
 
+  // Clear onboarding splash headers if an actual conversation begins
+  if (conversationBox.querySelector('.welcome-placeholder')) {
+    conversationBox.replaceChildren();
+  }
+
   const messageClone = template.content.cloneNode(true);
   const rowDiv = messageClone.querySelector(".message-row");
   const nameSpan = messageClone.querySelector(".sender-name");
@@ -194,11 +210,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
     if (deleteBtn) deleteBtn.remove();
   }
 
-  // Clear onboarding splash headers if an actual conversation begins
-  if (conversationBox.querySelector('.welcome-placeholder')) {
-    conversationBox.replaceChildren();
-  }
-
   conversationBox.appendChild(messageClone);
   conversationBox.scrollTop = conversationBox.scrollHeight;
 }
@@ -206,11 +217,9 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null) {
 // ============================================================================
 // 🧹 GLOBAL SYNC CLEAR CHAT ENGINE
 // ============================================================================
-// FIXED: Changed ID to "clear-btn" to link up with your HTML exactly
 document.getElementById("clear-btn")?.addEventListener("click", () => {
   if (confirm("Are you sure you want to completely wipe the conversation history for everyone?")) {
     if (socket.readyState === WebSocket.OPEN) {
-      // Dispatches request directly up the WebSocket pipeline to Case C in Python
       socket.send(JSON.stringify({ event: "clear-chat" }));
     }
   }
@@ -262,7 +271,6 @@ function loadOpenAccessGifs() {
 
     img.addEventListener("click", async () => {
       if (socket.readyState === WebSocket.OPEN) {
-        // Pass an explicitly encrypted placeholder space instead of raw text
         const blankEncrypted = await encryptText(" ");
         socket.send(JSON.stringify({
           event: "send-message",
