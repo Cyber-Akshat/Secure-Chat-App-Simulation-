@@ -34,7 +34,7 @@ class ChatServer:
 
         await self.broadcast_usernames()
 
-        # Send full text history to this user immediately on connection
+        #send full text history to this user immediately on connection
         await self.send_chat_history(websocket)
 
         try:
