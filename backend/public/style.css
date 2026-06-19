@@ -1,6 +1,26 @@
 /* ============================================================================
-   GLOBAL STYLES & RESET
+   GLOBAL STYLES, VARIABLES & RESET
    ============================================================================ */
+:root {
+  --base-bg: #f4f6fa;
+  --panel-bg: #ffffff;
+  --header-bg: #0b1426;
+  --text-main: #333d47;
+  --text-muted: #8c96a3;
+  --bubble-received: #ffffff;
+  --bubble-received-border: #e5e7eb;
+}
+
+.darkmode {
+  --base-bg: #070b12;
+  --panel-bg: rgba(16, 20, 37, 0.65); /* Semi-transparent to let neon glow bleed through */
+  --header-bg: rgba(3, 6, 17, 0.85);
+  --text-main: #ffffff;
+  --text-muted: #a4a5b8;
+  --bubble-received: #1a1f37;
+  --bubble-received-border: #232a4a;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -9,29 +29,104 @@
 }
 
 body {
-  background-color: #f4f6fa; /* Light grey/blue background seen in the image */
+  background-color: var(--base-bg);
   height: 100vh;
   display: flex;
-  flex-direction: column; /* Stacks header on top, content below */
+  flex-direction: column;
   overflow: hidden;
+  position: relative;
+  transition: background 0.3s ease;
 }
 
 /* ============================================================================
-   DARK MODE / LIGHT MODE TOGGLE
+   COOL DYNAMIC BACKGROUND OVERLAYS (ONLY FOR DARK MODE)
    ============================================================================ */
+body::before,
+body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease-in-out;
+  z-index: -1;
+}
 
+/* Subtle tech-grid pattern */
+.darkmode::before {
+  opacity: 0.06;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
 
+/* Ambient Deep Purple & Indigo Glow */
+.darkmode::after {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.12) 0%, transparent 40%),
+    #070b12; /* Rich dark void color */
+}
+
+/* Glassmorphism panel blurs for dark mode */
+.darkmode aside,
+.darkmode main#content {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.darkmode header {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
 
 /* ============================================================================
-   DARK TOP NAVIGATION HEADER
+   THEME TOGGLE SWITCH
+   ============================================================================ */
+#theme-switch {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+#theme-switch:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#theme-switch .sun-icon {
+  display: none;
+}
+.darkmode #theme-switch .moon-icon {
+  display: none;
+}
+.darkmode #theme-switch .sun-icon {
+  display: block;
+}
+
+/* ============================================================================
+   TOP NAVIGATION HEADER
    ============================================================================ */
 header {
-  background-color: #0b1426; /* Deep dark blue navbar */
+  background-color: var(--header-bg);
   color: #ffffff;
   padding: 15px 30px;
   display: flex;
   align-items: center;
   height: 60px;
+  transition: background-color 0.2s ease;
 }
 
 header h1 {
@@ -47,7 +142,7 @@ header h1 {
   display: flex;
   flex: 1;
   padding: 20px;
-  gap: 20px; /* Space between sidebar and main panel */
+  gap: 20px;
   height: calc(100vh - 60px);
 }
 
@@ -56,17 +151,18 @@ header h1 {
    ============================================================================ */
 aside {
   width: 280px;
-  background: #ffffff;
-  border-radius: 16px; /* Smooth rounded container */
+  background: var(--panel-bg);
+  border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: background-color 0.2s ease;
 }
 
 aside h2 {
   font-size: 0.9rem;
-  color: #8c96a3; /* Muted grey title */
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 15px;
@@ -79,21 +175,48 @@ aside h2 {
   gap: 12px;
 }
 
-/* Each user item in the list */
 #users li {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 8px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  gap: 4px;
   font-size: 0.95rem;
-  color: #333d47;
+  color: var(--text-main);
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 #users li:hover {
-  background-color: #f0f4ff; /* Slight highlight on hover */
+  background-color: rgba(128, 128, 128, 0.1);
+}
+
+.darkmode #users li:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+#users li img {
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+#users li span:not(:last-child) {
+  flex: 1;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#users li span:last-child {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* ============================================================================
@@ -101,20 +224,19 @@ aside h2 {
    ============================================================================ */
 main#content {
   flex: 1;
-  background: #ffffff;
-  border-radius: 16px; /* Smooth rounded window matching sidebar */
+  background: var(--panel-bg);
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   position: relative;
+  transition: background-color 0.2s ease;
 }
 
 /* ============================================================================
    WHATSAPP-STYLE CHAT BUBBLES
    ============================================================================ */
-
-/* The conversation container should stack messages from top to bottom */
 #conversation {
   flex: 1;
   overflow-y: auto;
@@ -122,18 +244,16 @@ main#content {
   flex-direction: column;
   gap: 10px;
   padding: 10px;
-  justify-content: flex-start; /* Keeps messages starting from the top */
-  align-items: stretch;        /* Allows rows to span full width */
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
-/* Full-width container row to help align chat bubbles left or right */
 .message-row {
   display: flex;
   width: 100%;
   margin-bottom: 4px;
 }
 
-/* Default style for a chat bubble */
 .message-bubble {
   max-width: 65%;
   padding: 10px 14px;
@@ -145,49 +265,56 @@ main#content {
   flex-direction: column;
 }
 
-/* The small sender name inside the bubble */
 .sender-name {
   font-size: 0.75rem;
   font-weight: bold;
-  color: #1f2937;
   margin-bottom: 3px;
 }
 
-/* The actual text body */
 .message-text {
-  color: #374151;
   word-break: break-word;
 }
 
-/* Sent messages (YOU) - Aligns to the right with a beautiful light green tint */
+/* Sent messages (YOU) */
 .message-row.sent {
   justify-content: flex-end;
 }
 .message-row.sent .message-bubble {
-  background-color: #d9fdd3; /* Soft WhatsApp light-green tint */
-  border-top-right-radius: 2px; /* Distinct chat bubble corner shape */
+  background-color: #d9fdd3;
+  border-top-right-radius: 2px;
+  color: #374151;
 }
 .message-row.sent .sender-name {
-  color: #059669; /* Darker green for your name indicator */
+  color: #059669;
+}
+.darkmode .message-row.sent .message-bubble {
+  background-color: #005c4b;
+  color: #ffffff;
+}
+.darkmode .message-row.sent .sender-name {
+  color: #4ade80;
 }
 
-/* Received messages (OTHERS) - Aligns to the left with a clean white look */
+/* Received messages (OTHERS) */
 .message-row.received {
   justify-content: flex-start;
 }
 .message-row.received .message-bubble {
-  background-color: #ffffff;
+  background-color: var(--bubble-received);
   border-top-left-radius: 2px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--bubble-received-border);
+  color: var(--text-main);
 }
 .message-row.received .sender-name {
-  color: #2563eb; /* Blue name signature for clarity */
+  color: #2563eb;
+}
+.darkmode .message-row.received .sender-name {
+  color: #60a5fa;
 }
 
-/* Typing state element positioning */
 #typing-indicator {
   font-style: italic;
-  color: #8c96a3;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin-bottom: 8px;
   align-self: flex-start;
@@ -201,9 +328,9 @@ main#content {
 #form {
   display: flex;
   align-items: center;
-  background-color: #ffffff;
-  border: 1px solid #e1e6eb;
-  border-radius: 30px; /* Fully rounded pill structure */
+  background-color: var(--panel-bg);
+  border: 1px solid var(--bubble-received-border);
+  border-radius: 30px;
   padding: 6px 8px 6px 18px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
@@ -213,15 +340,15 @@ main#content {
   border: none;
   outline: none;
   font-size: 0.95rem;
-  color: #333d47;
+  color: var(--text-main);
   padding: 10px 0;
+  background: transparent;
 }
 
 #data::placeholder {
-  color: #b0b8c4;
+  color: var(--text-muted);
 }
 
-/* Bright blue send button matching image */
 #send {
   background-color: #2563eb;
   color: white;
@@ -241,44 +368,6 @@ main#content {
 #send:hover {
   background-color: #1d4ed8;
 }
-/* ============================================================================
-   AVATAR SIDEBAR LAYOUT ALIGNMENT
-   ============================================================================ */
-
-/* Adjusts the sidebar list items to become flexible, full-width rows */
-#users li {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  gap: 4px; /* Creates a clean gap structure */
-}
-
-/* Ensures the avatar image stays perfectly round and doesn't shrink */
-#users li img {
-  border-radius: 50%;
-  flex-shrink: 0;
-  object-fit: cover;
-}
-
-/* Forces the username text to take up remaining space, pushing the dot right */
-#users li span:not(:last-child) {
-  flex: 1;
-  font-size: 0.95rem;
-  color: #333d47;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Safely truncates names if they are too long */
-}
-
-/* Explicitly targets the online status indicator dot */
-#users li span:last-child {
-  flex-shrink: 0;
-  margin-left: auto; /* Solid safety fallback to lock the dot on the right margin */
-}
 
 #attach-btn {
   background: transparent;
@@ -295,45 +384,34 @@ main#content {
 }
 
 /* ============================================================================
-   MODERN CHAT ACTION ACTION BUTTONS
+   MODERN CHAT ACTION BUTTONS
    ============================================================================ */
-
 .chat-gif-button {
-  background-color: #f0f2f5;           /* Light grey chat accent matching input fields */
-  border: 1px solid #ccd0d5;           /* Soft clean framing border */
-  color: #54656f;                      /* Balanced dark grey text tint */
+  background-color: rgba(128, 128, 128, 0.1);
+  border: 1px solid var(--text-muted);
+  color: var(--text-main);
   font-family: inherit;
   font-size: 0.85rem;
-  font-weight: 700;                    /* Makes "GIF" bold and clean */
+  font-weight: 700;
   letter-spacing: 0.5px;
-
-  padding: 0 16px;                     /* Comfortable horizontal tapping padding */
-  height: 40px;                        /* Matches the standard chat input line height */
-  border-radius: 20px;                 /* Pill-shaped design */
-
+  padding: 0 16px;
+  height: 40px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;    /* Smooth hover animation fading speeds */
+  transition: all 0.2s ease-in-out;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-right: 8px;
 }
 
-/* Hover State - Changes background and text color when mouse rolls over it */
 .chat-gif-button:hover {
-  background-color: #e4e6eb;           /* Darkens slightly on hover */
-  color: #00a884;                      /* Changes text color to an Emerald Teal accent */
-  border-color: #00a884;               /* Frame glows teal along with text */
-  transform: translateY(-1px);         /* Micro-lift effect */
+  background-color: rgba(128, 128, 128, 0.2);
+  color: #00a884;
+  border-color: #00a884;
+  transform: translateY(-1px);
 }
 
-/* Active Click State - Adds immediate tactile feedback when pressed down */
 .chat-gif-button:active {
-  transform: translateY(1px);          /* depresses slightly down */
-  background-color: #d8dadf;
-}
-
-/* Optional Focus Outline - Helps keyboard accessibility navigation frames */
-.chat-gif-button:focus {
-  outline: 2px solid rgba(0, 168, 132, 0.3);
-  outline-offset: 2px;
+  transform: translateY(1px);
 }

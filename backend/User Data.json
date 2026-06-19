@@ -48,5 +48,10 @@
         "username": "Student3",
         "salt": "23f9c31be84d2b848fa16a0d0ef20e82",
         "password_hash": "b3e3bdb57859e253284779f0f300e7464e25cf479d4fd62e36800484b0c163da"
+    },
+    {
+        "username": "Student5",
+        "salt": "49c62b11a6489f209b7c7bf01638085a",
+        "password_hash": "4301e488ba0af88304c0d188bd9729ee2894aae44ca41c4deb0fc43366505f39"
     }
 ]

@@ -1,8 +1,25 @@
+// ============================================================================
+// CLEAN STRUCTURAL UTILITIES
+// ============================================================================
 function sanitizeUsername(raw) {
   if (!raw) return "";
   const noTags = raw.replace(/<[^>]*>/g, "");
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
+
+// ============================================================================
+// LIGHT MODE / DARK MODE LOCAL LIFECYCLE
+// ============================================================================
+const themeSwitch = document.getElementById('theme-switch');
+
+if (localStorage.getItem('darkmode') === 'active') {
+  document.body.classList.add('darkmode');
+}
+
+themeSwitch?.addEventListener("click", () => {
+  const isDarkNow = document.body.classList.toggle('darkmode');
+  localStorage.setItem('darkmode', isDarkNow ? 'active' : 'inactive');
+});
 
 // ============================================================================
 // 🔐 SESSION CHECKING
@@ -72,10 +89,8 @@ async function decryptText(encryptedPayload) {
 // ============================================================================
 const socket = new WebSocket(`ws://${window.location.host}/start_web_socket?username=${encodeURIComponent(myUsername)}`);
 
-// Helper to safely trigger a live re-render of the sidebar user list
 function refreshUserListUI() {
   const onlineUsers = Array.from(document.querySelectorAll("#users li span[data-username]")).map(el => el.getAttribute("data-username"));
-  // Fallback to active keys if DOM is being populated initially
   const combinedUsernames = onlineUsers.length ? onlineUsers : Object.keys(unreadCounts).concat([myUsername]);
   updateUserList(combinedUsernames);
 }
@@ -87,7 +102,6 @@ socket.onmessage = async function(event) {
     if (data.event === "update-users") {
       updateUserList(data.usernames);
     }
-    // Live Incoming Private Message Interceptor
     else if (data.event === "send-message") {
       allChatLogs.push({
         id: data.id,
@@ -98,8 +112,6 @@ socket.onmessage = async function(event) {
         is_deleted: data.is_deleted || false
       });
 
-      // 🛑 UNREAD COUNTER LOGIC
-      // If the incoming message is for me, from someone else, and NOT my currently open chat room
       if (data.recipient === myUsername && data.username !== myUsername && data.username !== activeRecipient) {
         unreadCounts[data.username] = (unreadCounts[data.username] || 0) + 1;
         refreshUserListUI();
@@ -107,18 +119,15 @@ socket.onmessage = async function(event) {
 
       await renderConversation();
     }
-    // 📜 Incoming Chat History Batch Handler
     else if (data.event === "chat-history") {
       allChatLogs = data.messages;
       await renderConversation();
     }
-    // 🛡️ Error Catching (Spam Protection)
     else if (data.event === "error") {
       const systemId = "sys-" + Date.now();
       addMessageToChat(systemId, "System Guard", data.message, null);
       return;
     }
-    // 🗑️ Live Message Deletion Interceptor
     else if (data.event === "delete-message") {
       const targetMsg = allChatLogs.find(msg => msg.id === data.id);
       if (targetMsg) {
@@ -128,7 +137,6 @@ socket.onmessage = async function(event) {
       }
       await renderConversation();
     }
-    // 🧹 GLOBAL PURGE INTERCEPTION
     else if (data.event === "clear-all-messages") {
       allChatLogs = [];
       await renderConversation();
@@ -143,31 +151,21 @@ function updateUserList(usernames) {
   if (!userList) return;
   userList.replaceChildren();
 
-  // 1. First loop: Render all OTHER users (Make them clickable targets)
   for (const username of usernames) {
     if (username === myUsername) continue;
 
-    // Make sure an entry tracking slot exists in the local map
     if (unreadCounts[username] === undefined) {
       unreadCounts[username] = 0;
     }
 
     const listItem = document.createElement("li");
-    listItem.style.display = "flex";
-    listItem.style.alignItems = "center";
-    listItem.style.width = "100%";
-    listItem.style.cursor = "pointer";
-    listItem.style.padding = "8px";
-    listItem.style.borderRadius = "6px";
-    listItem.style.transition = "background 0.2s";
-
     if (activeRecipient === username) {
-      listItem.style.backgroundColor = "#f0f2f5";
+      listItem.style.backgroundColor = "rgba(128, 128, 128, 0.15)";
     }
 
     listItem.addEventListener("click", async () => {
       activeRecipient = username;
-      unreadCounts[username] = 0; // 🎯 Wipes the unread counter when clicked
+      unreadCounts[username] = 0;
       updateUserList(usernames);
       await renderConversation();
     });
@@ -180,17 +178,14 @@ function updateUserList(usernames) {
 
     const nameSpan = document.createElement("span");
     nameSpan.textContent = username;
-    nameSpan.setAttribute("data-username", username); // reference point for UI re-rendering
-    nameSpan.style.flex = "1";
+    nameSpan.setAttribute("data-username", username);
     nameSpan.style.fontWeight = (activeRecipient === username) ? "700" : "500";
 
-    // Unread Badge Container layout element
     const badgeWrapper = document.createElement("div");
     badgeWrapper.style.display = "flex";
     badgeWrapper.style.alignItems = "center";
     badgeWrapper.style.gap = "8px";
 
-    // Render badge count bubble if there are pending texts
     if (unreadCounts[username] > 0) {
       const unreadBadge = document.createElement("span");
       unreadBadge.textContent = unreadCounts[username];
@@ -217,15 +212,10 @@ function updateUserList(usernames) {
     userList.appendChild(listItem);
   }
 
-  // 2. Second phase: Append YOUR name safely at the bottom (Unclickable)
   if (usernames.includes(myUsername)) {
     const myItem = document.createElement("li");
-    myItem.style.display = "flex";
-    myItem.style.alignItems = "center";
-    myItem.style.width = "100%";
-    myItem.style.padding = "8px";
-    myItem.style.borderRadius = "6px";
     myItem.style.opacity = "0.85";
+    myItem.style.cursor = "default";
 
     const myAvatar = document.createElement("img");
     myAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(myUsername)}&background=9333ea&color=fff&rounded=true&size=32`;
@@ -236,8 +226,6 @@ function updateUserList(usernames) {
     const myNameSpan = document.createElement("span");
     myNameSpan.textContent = `${myUsername} (You)`;
     myNameSpan.setAttribute("data-username", myUsername);
-    myNameSpan.style.flex = "1";
-    myNameSpan.style.fontWeight = "500";
 
     const myStatusDot = document.createElement("span");
     myStatusDot.style.width = "8px";
@@ -252,7 +240,6 @@ function updateUserList(usernames) {
   }
 }
 
-// 🛡 ... rest of the unchanged rendering logic continues exactly below ...
 async function renderConversation() {
   const conversationBox = document.getElementById("conversation");
   if (!conversationBox) return;
@@ -264,10 +251,10 @@ async function renderConversation() {
     welcomeDiv.style.textAlign = "center";
     welcomeDiv.style.marginTop = "20px";
     welcomeDiv.innerHTML = `
-      <h2 style="color: #333d47; margin-bottom: 8px;"> 
+      <h2> 
         <img src="C-removebg-preview.png" height="400" width="auto">
       </h2>
-      <p style="color: #8c96a3; font-size: 0.95rem;">Select an online user from the sidebar to chat privately.</p>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Select an online user from the sidebar to chat privately.</p>
     `;
     conversationBox.appendChild(welcomeDiv);
     return;
@@ -409,61 +396,52 @@ function loadOpenAccessGifs() {
   stableOpenUrls.forEach(url => {
     const img = document.createElement("img");
     img.src = url;
+    img.alt = "GIF Alternative option";
     img.style.width = "100%";
-    img.style.height = "90px";
-    img.style.objectFit = "cover";
     img.style.borderRadius = "4px";
     img.style.cursor = "pointer";
 
     img.addEventListener("click", async () => {
       if (!activeRecipient) {
-        alert("Please select an online user from the sidebar before sending a GIF.");
+        alert("Select an online user from the sidebar to send a GIF.");
         return;
       }
-      if (socket.readyState === WebSocket.OPEN) {
-        const blankEncrypted = await encryptText(" ");
-        socket.send(JSON.stringify({
-          event: "send-message",
-          recipient: activeRecipient,
-          message: blankEncrypted,
-          gifUrl: url
-        }));
-        gifDrawer.style.display = "none";
-      }
+
+      socket.send(JSON.stringify({
+        event: "send-message",
+        recipient: activeRecipient,
+        message: "",
+        gifUrl: url
+      }));
+      gifDrawer.style.display = "none";
     });
+
     gifGrid.appendChild(img);
   });
 }
 
 // ============================================================================
-// CHAT FORM SUBMISSION
+// CHAT FORM INPUT SUBMIT ACTION
 // ============================================================================
-const messageInput = document.getElementById("data");
-const chatForm = document.getElementById("form");
+document.getElementById("form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("data");
+  if (!input) return;
+  const rawText = input.value.trim();
 
-chatForm?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const messageText = messageInput.value.trim();
-
+  if (!rawText) return;
   if (!activeRecipient) {
-    alert("Please click on an online user from the sidebar to text them directly.");
+    alert("Please select a user from the sidebar to chat privately.");
     return;
   }
 
-  if (messageText !== "" && socket.readyState === WebSocket.OPEN) {
-    try {
-      const encryptedPayload = await encryptText(messageText);
-      if (!encryptedPayload) return;
+  const securePayload = await encryptText(rawText);
+  socket.send(JSON.stringify({
+    event: "send-message",
+    recipient: activeRecipient,
+    message: securePayload,
+    gifUrl: null
+  }));
 
-      socket.send(JSON.stringify({
-        event: "send-message",
-        recipient: activeRecipient,
-        message: encryptedPayload,
-        gifUrl: null
-      }));
-      messageInput.value = "";
-    } catch (err) {
-      console.error("Critical error during transmission submission loop:", err);
-    }
-  }
+  input.value = "";
 });
