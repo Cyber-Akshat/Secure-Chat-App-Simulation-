@@ -119,3 +119,45 @@ registerForm.addEventListener("submit", async (event) => {
   document.getElementById("login-username").value = username;
   document.getElementById("login-password").focus();
 });
+
+// Real-Time Password Tick Box Validation Feature
+const registerPasswordInput = document.getElementById("register-password");
+const registerSubmitButton = registerForm.querySelector(".auth-submit");
+
+const reqLength = document.getElementById("req-length");
+const reqCase = document.getElementById("req-case");
+const reqNumber = document.getElementById("req-number");
+const reqSymbol = document.getElementById("req-symbol");
+
+registerPasswordInput.addEventListener("input", () => {
+  const value = registerPasswordInput.value;
+
+  const hasLength = value.length >= 12 && value.length <= 16;
+  const hasCase = /[a-z]/.test(value) && /[A-Z]/.test(value);
+  const hasNumber = /[0-9]/.test(value);
+  const hasSymbol = /[^A-Za-z0-9]/.test(value);
+
+  // Toggle tick box element states dynamically
+  reqLength.checked = hasLength;
+  reqLength.parentElement.classList.toggle("valid-req", hasLength);
+
+  reqCase.checked = hasCase;
+  reqCase.parentElement.classList.toggle("valid-req", hasCase);
+
+  reqNumber.checked = hasNumber;
+  reqNumber.parentElement.classList.toggle("valid-req", hasNumber);
+
+  reqSymbol.checked = hasSymbol;
+  reqSymbol.parentElement.classList.toggle("valid-req", hasSymbol);
+
+  // Restrict core submit mechanics until safety guidelines match
+  if (hasLength && hasCase && hasNumber && hasSymbol) {
+    registerSubmitButton.disabled = false;
+    registerSubmitButton.style.opacity = "1";
+    registerSubmitButton.style.cursor = "pointer";
+  } else {
+    registerSubmitButton.disabled = true;
+    registerSubmitButton.style.opacity = "0.5";
+    registerSubmitButton.style.cursor = "not-allowed";
+  }
+});

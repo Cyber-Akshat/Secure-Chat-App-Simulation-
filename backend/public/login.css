@@ -214,6 +214,37 @@ body {
   accent-color: #8b7bff;
 }
 
+/* PASSWORD VALIDATION STYLES */
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: rgba(241, 237, 255, 0.45);
+  transition: color 0.2s ease;
+}
+
+.req-item input {
+  width: 13px;
+  height: 13px;
+  accent-color: #22c55e;
+  cursor: not-allowed;
+}
+
+.req-item.valid-req {
+  color: #bbf7d0;
+}
+
 .auth-submit {
   margin-top: 4px;
   padding: 12px;
@@ -224,15 +255,15 @@ body {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
 }
 
-.auth-submit:hover {
+.auth-submit:hover:not(:disabled) {
   box-shadow: 0 10px 24px rgba(124, 92, 255, 0.4);
   transform: translateY(-1px);
 }
 
-.auth-submit:active {
+.auth-submit:active:not(:disabled) {
   transform: translateY(0);
 }
 

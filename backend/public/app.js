@@ -396,7 +396,14 @@ function loadOpenAccessGifs() {
   const stableOpenUrls = [
     "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif",
     "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJpZHhkaWJ1cGtoNTR3dDV2a3I3dnI3YmczOXRpZm5tOGtza3QzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OuQmhmAAdJFLi/giphy.gif",
-    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif"
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZzNlYWQzNWQ1MnVsZ2U1ZGk3aWk3am54OXFvcmR1dWx4c2h2cjZ1YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xlGYf1RUbYYes/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExenVscGF2dWI5bmI4cGlrY3owMGVmYTdtMjY5cjlrem9rZ29yNnd0cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Nwz6NZkToYC4M/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXM5ZDBuajhkNGJsdWk4ZDBjbHBsbXZnczlkcW5ydW0yNDk5aXhyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XHeLeuirRbwptHhSWd/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTRrZm02djJyamNycGpxNmhiemEwYjk3NWVjMHB1ZWFxbWwya3l4ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjhiaG9xMHoxemNweDRiOGN1NnZ4ZjR3ZmRwNnB1dnl4eDZpZ2h2biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zVN0OolkDHmbC/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExODBvZHlnMWJobGgyMmRmYml5bzhqNWxza3d1d2NuczdsMzhmeWhrdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o72FfM5HJydzafgUE/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2Vocng2YnVkY2F1cm4wZHNnaW0zdTlzMXkwNThreWF2amExbmxmcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/okfvUCpgArv3y/giphy.gif"
   ];
 
   stableOpenUrls.forEach(url => {

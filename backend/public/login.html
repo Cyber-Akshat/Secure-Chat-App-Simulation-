@@ -25,7 +25,6 @@
 
       <p id="auth-message" class="auth-message" role="alert" hidden></p>
 
-      <!-- LOGIN -->
       <form id="login-form" class="auth-form" novalidate>
         <label class="field">
           <span>Username</span>
@@ -45,7 +44,6 @@
         <button type="submit" class="auth-submit">Log in</button>
       </form>
 
-      <!-- REGISTER -->
       <form id="register-form" class="auth-form" novalidate hidden>
         <label class="field">
           <span>Choose a username</span>
@@ -57,12 +55,31 @@
           <input type="password" id="register-password" autocomplete="new-password" required />
         </label>
 
+        <div class="password-requirements">
+          <label class="req-item">
+            <input type="checkbox" id="req-length" disabled />
+            <span>12–16 characters long</span>
+          </label>
+          <label class="req-item">
+            <input type="checkbox" id="req-case" disabled />
+            <span>Uppercase & lowercase mix</span>
+          </label>
+          <label class="req-item">
+            <input type="checkbox" id="req-number" disabled />
+            <span>At least one number</span>
+          </label>
+          <label class="req-item">
+            <input type="checkbox" id="req-symbol" disabled />
+            <span>At least one symbol</span>
+          </label>
+        </div>
+
         <label class="field">
           <span>Confirm password</span>
           <input type="password" id="register-confirm" autocomplete="new-password" required />
         </label>
 
-        <button type="submit" class="auth-submit">Create account</button>
+        <button type="submit" class="auth-submit" disabled style="opacity: 0.5; cursor: not-allowed;">Create account</button>
       </form>
 
       <p class="auth-toggle">

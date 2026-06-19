@@ -173,5 +173,189 @@
         "encrypted_message": "Vodb4yTl5Yc53los:KCi82DgaQcg71R4Lgi4s/5k=",
         "gif_url": null,
         "is_deleted": false
+    },
+    {
+        "id": "a975098adae104d4",
+        "sender": "Avi",
+        "recipient": "mamakaash",
+        "encrypted_message": "hAEanbXLEDsmdfYu:3MsB79UCWRNv/+NBQo7bK1Uy",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "0962628dc5e97746",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "bKfNsPQpnoSPkUlL:Xud3z3IGmp/6TTYaNNhV//2M",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "31c606e990e78f3c",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "tf0q5n+WmNRH1iPq:Od56LflBQBQPPxC1Bf7o58aZeA10TVpTCitu",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "2f4c53407194fb49",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "zod05BGeAJ3NjJ1t:8+DZ7E9bHOPF6EmmnmM/sGI=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e68f831ce3b7b174",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "KetejXN23/+pmcwq:vWYq2i2j3jDgLLeoKS/7XH4=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e95c135356778578",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "VWErMCJTXCioDQDs:OAyyWn4cXs+foDp4d7Gb/fg=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "c248740f77b22c5d",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "h5Iix+ln+fVPNhAa:D/SgJfEdI4fO62dTAcK2iS8=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "fd5e14460d69ef9b",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "Ej/S+tHtLc9wSPtG:OXftAMpreuL2sDGY5rTG9SM=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "9d1e0701ad8e8706",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "9114f1a5e28028ab",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "fd6ca9e59e57c638",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "2edNVg4DgrOssRtT:OaLUAD68a4h6bAbLPHfq8mU=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "a3e25e599958c07c",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "FcEmrawR50YbRA44:1XyN5M9b3oIHFkKBKMlmdSE=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "8988748cffe6841f",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "BzWjfpGpOLI5RePS:waTxwVLxmpnOHFYS7Qm6YZw=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "12eff5a610717926",
+        "sender": "aks",
+        "recipient": "Yash",
+        "encrypted_message": "r/Ga+5wkExqHYdD7:6HcfZs7Gvg8lELn3WETDv6mJ",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "a8990045991f22da",
+        "sender": "hello",
+        "recipient": "Yash",
+        "encrypted_message": "sJ3xzJR6gc1o9mj9:OhoM7WgBPq5iqsuNPQva/LaDLwwvkGWB8saBUw42oWEiWj1/PIQ=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "5218db19c7b01550",
+        "sender": "hello",
+        "recipient": "Yash",
+        "encrypted_message": "SoweV2cjsx0kNEmk:X8ANLVlRLFfabVo92DVzCUzNjBmMtGXRXh0l4MWvfn4=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "f067e29eb758a1eb",
+        "sender": "Yash",
+        "recipient": "hello",
+        "encrypted_message": "Lfcm3CyBkfm7o0/J:v7y7v1EknnCWQXlZ4o2BZeir",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "8669e7184352d972",
+        "sender": "Student",
+        "recipient": "Yash",
+        "encrypted_message": "KiW3YW4nYMfUuiy0:vRQorWs9ALE2C5bW7WZglmk3js5A8FDIbBU75LzQLA==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "2bde57e11b100210",
+        "sender": "Student",
+        "recipient": "Yash",
+        "encrypted_message": "Xr6g1RBqEzydIpJV:Oj+t5m1hCmkRoKoHU6pmUTzTbuhEg7KsoqBirdHRWWU14xnNpRtNtLxvOw==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "5d4a80eb61ff8898",
+        "sender": "Student",
+        "recipient": "Student3",
+        "encrypted_message": "28lG1ltob57/hJVY:tp7vdHYvcr5URu4lgq1TMEae",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "9949078e6e3708a4",
+        "sender": "Yash",
+        "recipient": "Student",
+        "encrypted_message": "YG9BCqvx6tTvR4HN:AKTui/iirBrGUv2/vdQNLw2B",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "b392f45c0c33b10d",
+        "sender": "Yash",
+        "recipient": "Student",
+        "encrypted_message": "HrZxRU169uNIfiEt:x8TXDXMtM/Gfrl+lqUenmhKXSTkbXkbOCxa7tMRZ8G4xmLla6VXbywtKRA==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "9821a5c7720342e3",
+        "sender": "Student3",
+        "recipient": "Student",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
     }
 ]
