@@ -1,57 +1,17 @@
 [
     {
-        "username": "Gideon",
-        "salt": "a0ddfce09d36fedfd4cb11c5087a70f2",
-        "password_hash": "289892415576e42d6c8a9c0fe554c584c43e54c6d4d73b5146a665fef977dca8"
-    },
-    {
         "username": "Mitchell",
-        "salt": "d9672793c58fb0ebd02dcba69d8dbbae",
-        "password_hash": "c97a8fe655456baa9ecdae6dfe126ef99881908669ce46a1ab641ca8ccc88631"
+        "salt": "f7d05323e6203e504dd74dd72272551d",
+        "password_hash": "6eedad4545f7e0abd2e642c7c16babde8b9c78a118626ca5932cb92f9628dd94"
     },
     {
         "username": "Akshat",
-        "salt": "f443da0d99f57a128444f34d59ed0333",
-        "password_hash": "e94441f62231382e4472777a86f7278024f35f23732a2c6cab0064ab0467ea61"
+        "salt": "b049e9875fa49903f2fd631f98ba3fa2",
+        "password_hash": "24f9f2e92de85a342a82109a6c9518c882c20102068680c1a63d5fdbd301997d"
     },
     {
-        "username": "aks",
-        "salt": "ae0e15222ff668599c2713e2ef53095d",
-        "password_hash": "735d9fc768bd94b34450eb16f21d2de7614dd0e983bb148e69a5a00a81a90f74"
-    },
-    {
-        "username": "mamakaash",
-        "salt": "1b85978c62ec03f4d254996e4f89dc8d",
-        "password_hash": "006e63c981a3413d80f01fb2964059d9168ecc69e8b4700663e83882cb3d512c"
-    },
-    {
-        "username": "Avi",
-        "salt": "553114d32c6c2e47101ec50b4974473f",
-        "password_hash": "0868f7ada525d6f6e9a328d9560b8c2b3cf0ac2bcd34049037efafe5db913ad8"
-    },
-    {
-        "username": "Yash",
-        "salt": "d484367f37afaf65d464fbaa7af3cf17",
-        "password_hash": "33c99644b157161c9f8b49aa9e650ef02ac6c0079a552493cb9aff7809a5ad87"
-    },
-    {
-        "username": "hello",
-        "salt": "1d8ecbcf94c1a60fb052fd5615b6ec2f",
-        "password_hash": "420255b3d374dd866054ebe4b2a94d59e90d738128fabd45eb2d9d657645fbb2"
-    },
-    {
-        "username": "Student",
-        "salt": "a727c86a00fedc79913be3eeff0cc8c1",
-        "password_hash": "a38ff8b8b9a7c7625c6b81bf1a3c3f72ac81604bce8ae882d39aeb1691b6643a"
-    },
-    {
-        "username": "Student3",
-        "salt": "23f9c31be84d2b848fa16a0d0ef20e82",
-        "password_hash": "b3e3bdb57859e253284779f0f300e7464e25cf479d4fd62e36800484b0c163da"
-    },
-    {
-        "username": "Student5",
-        "salt": "49c62b11a6489f209b7c7bf01638085a",
-        "password_hash": "4301e488ba0af88304c0d188bd9729ee2894aae44ca41c4deb0fc43366505f39"
+        "username": "Gideon",
+        "salt": "957c8058232b1b93eb6caf2305497a3d",
+        "password_hash": "9030c0a31db17ce9ebc5424077e0c01a975f8fe56df8e162e543d8d0416a75aa"
     }
 ]
