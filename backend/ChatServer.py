@@ -17,11 +17,7 @@ class ChatServer:
             "timestamps": []
         }
 
-        if not (os
-                .path.exists(self.storage_file)):
-
-
-
+        if not os.path.exists(self.storage_file):
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump([], f)
 
