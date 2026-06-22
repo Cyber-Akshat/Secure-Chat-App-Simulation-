@@ -304,6 +304,7 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
 
   textParagraph.textContent = messageText || "";
 //Sets text font to italic once deleted
+//test
   if (isDeleted) {
     textParagraph.style.fontStyle = "italic";
     textParagraph.style.opacity = "0.7";
