@@ -8,11 +8,13 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Lock page to viewport, no scrolling */
 html, body {
   height: 100%;
   overflow: hidden;
 }
 
+/* Center the auth card on screen */
 body {
   position: relative;
   display: flex;
@@ -24,6 +26,8 @@ body {
 /* ----------------------------------------------------------------------------
    BACKGROUND SCENE
    ---------------------------------------------------------------------------- */
+
+/* Full-screen gradient sky behind everything */
 .night-sky {
   position: fixed;
   inset: 0;
@@ -31,12 +35,14 @@ body {
   overflow: hidden;
 }
 
+/* Base layer for star fields */
 .stars {
   position: absolute;
   inset: 0;
   background-repeat: repeat;
 }
 
+/* Distant, dimmer stars */
 .stars--far {
   background-image:
     radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent),
@@ -52,6 +58,7 @@ body {
   animation: twinkle 5s ease-in-out infinite alternate;
 }
 
+/* Closer, brighter stars, animates opposite direction for parallax feel */
 .stars--near {
   background-image:
     radial-gradient(2px 2px at 22% 30%, #fff, transparent),
@@ -65,11 +72,13 @@ body {
   animation: twinkle 3.2s ease-in-out infinite alternate-reverse;
 }
 
+/* Fades stars in/out to simulate twinkling */
 @keyframes twinkle {
   from { opacity: 0.3; }
   to   { opacity: 0.95; }
 }
 
+/* Mountain silhouettes pinned to bottom of screen */
 .mountains {
   position: absolute;
   left: 0;
@@ -77,6 +86,7 @@ body {
   bottom: 0;
 }
 
+/* Back mountain layer (lighter, further away) */
 .mountains--back {
   height: 42%;
   background: #2c2160;
@@ -88,6 +98,7 @@ body {
   );
 }
 
+/* Front mountain layer (darker, closer) */
 .mountains--front {
   height: 30%;
   background: #181030;
@@ -101,6 +112,8 @@ body {
 /* ----------------------------------------------------------------------------
    AUTH CARD
    ---------------------------------------------------------------------------- */
+
+/* Wrapper that centers the card within the page */
 .auth-stage {
   position: relative;
   z-index: 1;
@@ -110,6 +123,7 @@ body {
   padding: 24px;
 }
 
+/* The glassmorphism login/signup card */
 .auth-card {
   width: 100%;
   max-width: 360px;
@@ -145,6 +159,7 @@ body {
   color: rgba(241, 237, 255, 0.65);
 }
 
+/* Banner for showing error/success feedback above the form */
 .auth-message {
   margin-bottom: 16px;
   padding: 10px 14px;
@@ -171,6 +186,7 @@ body {
   gap: 16px;
 }
 
+/* Wraps a label + input pair */
 .field {
   display: flex;
   flex-direction: column;
@@ -194,11 +210,13 @@ body {
   color: rgba(241, 237, 255, 0.4);
 }
 
+/* Highlight active input */
 .field input:focus {
   border-color: #8b7bff;
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* "Remember me" checkbox row */
 .remember {
   display: flex;
   align-items: center;
@@ -215,6 +233,7 @@ body {
 }
 
 /* PASSWORD VALIDATION STYLES */
+/* Box listing password rules (length, symbols, etc.) */
 .password-requirements {
   display: flex;
   flex-direction: column;
@@ -225,6 +244,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Single rule row, dimmed until satisfied */
 .req-item {
   display: flex;
   align-items: center;
@@ -241,10 +261,12 @@ body {
   cursor: not-allowed;
 }
 
+/* Applied (likely via JS) once a requirement is met, turns text green */
 .req-item.valid-req {
   color: #bbf7d0;
 }
 
+/* Main submit button */
 .auth-submit {
   margin-top: 4px;
   padding: 12px;
@@ -267,6 +289,7 @@ body {
   transform: translateY(0);
 }
 
+/* "Don't have an account? Sign up" row below the form */
 .auth-toggle {
   margin-top: 22px;
   text-align: center;
@@ -274,6 +297,7 @@ body {
   color: rgba(241, 237, 255, 0.65);
 }
 
+/* Text-styled button used for switching between login/signup */
 .link-btn {
   background: none;
   border: none;
@@ -289,6 +313,7 @@ body {
   text-decoration: underline;
 }
 
+/* Respect OS-level reduced motion setting */
 @media (prefers-reduced-motion: reduce) {
   .stars--far, .stars--near {
     animation: none;

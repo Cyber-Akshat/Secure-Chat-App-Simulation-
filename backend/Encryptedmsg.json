@@ -1,40 +1,25 @@
 [
     {
-        "id": "79350ec09abdf286",
-        "sender": "Mitchell",
-        "recipient": "Gideon",
-        "encrypted_message": "EjJshKZiumvmZaBY:jAhkhZKFnQ5HVzsJiNWBsR1q",
-        "gif_url": null
-    },
-    {
-        "id": "fb01db10a917d4c5",
-        "sender": "Mitchell",
-        "recipient": "Akshat",
-        "encrypted_message": "esFVCCdGUyG6cqjC:C7NNlNjcdRNElZLcZ4Paww8GvFam3XgU",
-        "gif_url": null,
-        "is_deleted": false
-    },
-    {
-        "id": "e1ef44a386361e9e",
-        "sender": "Gideon",
-        "recipient": "Mitchell",
-        "encrypted_message": "gb4gbJL3WUJ3ofOa:HeBHEIm8yDQQJwwwF5DxTP6O",
-        "gif_url": null,
-        "is_deleted": false
-    },
-    {
-        "id": "b4606d594f2d8ac3",
-        "sender": "Akshat",
-        "recipient": "Gideon",
-        "encrypted_message": "zjWfuLQxQbXzzqJ3:sE8wEgy4Xs0T7bxAQQt1zyCr0w==",
-        "gif_url": null,
-        "is_deleted": false
-    },
-    {
-        "id": "f0d5571d3ac5fa84",
-        "sender": "Akshat",
+        "id": "cec4041fb4ce5480",
+        "sender": "akshat",
         "recipient": "Mitchell",
         "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "44b10204b0653a4d",
+        "sender": "Mitchell",
+        "recipient": "Gideon",
+        "encrypted_message": "Qh2viUDsefevvAdj:/wXMIpdTVKd1lp67d+e/X6u5Bes=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "8d14f87949bffbc7",
+        "sender": "Mitchell",
+        "recipient": "akshat",
+        "encrypted_message": "cNh/lU8t4R2xjWOj:+WZhnV84dBqlKxurEHEwDSaa",
         "gif_url": null,
         "is_deleted": true
     },
@@ -450,6 +435,374 @@
         "id": "bf55d484887241f1",
         "sender": "Student5",
         "recipient": "Yash",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "d54f06405f78d052",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "GF20yc7xELRRJ8Cm:uQbpCDm7Vc/1VHkSxab4NdlVSJV+wwRlnOT8XZ1I7Kb8Yg==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "c79a53ef3a46528f",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "ntO0hVQS2++gxivG:yNqEAPtBooY6P93jrlrqG5cgPHtgJm9XTZVkT7k72w0=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e35b6ae7536f0682",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "fP7vdwjYFJ1WOPAS:lSS7KQ7nR67x/AOXDJRyoorEVxS63+ROJZpbom+17fuozSxW4yYvDz4OTnsqzhHJeA==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "406fef35a99a8bdd",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "d8d20f8e0c5ea360",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXM5ZDBuajhkNGJsdWk4ZDBjbHBsbXZnczlkcW5ydW0yNDk5aXhyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XHeLeuirRbwptHhSWd/giphy.gif",
+        "is_deleted": false
+    },
+    {
+        "id": "32264a130cc8ce99",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "ACB857/BMg+B+Vf/:1l8HlEJtP9XDipaMj9PLbCLax7BAbLJZFo4g82F3+fiMIbJ9krQ=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "0a4461f19fc954fb",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "Ib8YvKBX1lpmaf2V:cNhTv9tOGoqFxIq7RiI84uIepSRO/dyoqffwWsluZGKCaocsC7Rnd81FX3+qWNPajWjr5gmHRDZ6AJFDyu7PhJoDzw==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "cd3f26468b96a71f",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "b1jlmw/QKG/rK+FO:YRXtHYC8Z1UiGavnUdQ3pgv8d49eoaIQqA==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "71aa02c88a87fa2c",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "",
+        "gif_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTRxY240YTVqZWRnajdrMnlpczA2anc3NHF5NWlza29laGlmOHFraiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yWku98eNsMSZOEEWnC/giphy.gif",
+        "is_deleted": false
+    },
+    {
+        "id": "49efc0a2ba26784f",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "AsNHiYQPNONSAVa+:AiF0+DCiVGFINbNXMtfwYdZOMIM=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "34c5c3569e46d8e9",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "",
+        "gif_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdxYW0zMnBiejAwamQ4M2xneHcybzk5b3IxbG5odnNva2xzYjI4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XMMUWcz4XtDTNgZj22/giphy.gif",
+        "is_deleted": false
+    },
+    {
+        "id": "f48fa73c728350b0",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "u1v6HGJeqU405wsd:DCD6aYNgz3guU6DyYxSxwus5iNT5eMNjmizz6A==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "cc85588f1bfdda3f",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "d44fdf12cb417b74",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "595064c08c697d71",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExenVscGF2dWI5bmI4cGlrY3owMGVmYTdtMjY5cjlrem9rZ29yNnd0cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Nwz6NZkToYC4M/giphy.gif",
+        "is_deleted": false
+    },
+    {
+        "id": "3c7228ca3b58f9db",
+        "sender": "Gidi2funny",
+        "recipient": "akshat",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "61e702a1b019b2f4",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "AyPKQXQwZ15vOQPB:iz3TJGi873Qi/f8GoBqVxUoOOH1DBG7wd1P1hd0PAw==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "4590adbf8dbf57e9",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "uPgjKgRDUddQoJyw:m1ij6eLolKK6Ktk0s2XPyVR78SCh/yAs5p/ONQ3kmJ+s5j3uqt0=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "ee334af8b53e0fbf",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "BRHF8KayURYzwla2:wJdIL6qhI88ePxHh3PqjjhdLqGUT",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e1c2528d7ca4b5e7",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "U9/jjaiqget0Oq9w:EnHH1UnTo//rmedx2GqGeP01jVQ=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "5e35fe35d066ee78",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "jWI7/mekqz5MfAVz:gs6Xxyy+2ya96c6OooVhmo2KTLi7",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "f2d0db6d3eab5ec9",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "pF3JREd6r1pqz//C:m0idc1ZXApy2v9Szc259MIXiGB76",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "2d7c58bceb60c3b0",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "+saOiyoc+eOFa1GP:69KUwRgCJn9yXwv0uoAlyhFH9g==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "9fbefeb227f39a15",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "c38ABs+RL7R17KWC:Pvph91e0pRZ3AH1RZHzgIXr61sqck84=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "497d51598e54243a",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "ukP1BwMcsGe9da9b:Xv3715zLxvpAxud66vjch1BX86Pm",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "c77a7ba52d7647af",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "yfAe7OTEpyRb/jt9:6inzkT4fAKl0gp/O34/w9Au7YlGxYw==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "106342b09724b7b8",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "dAqdAkdEy/HHPcY7:hUG7Pgs3BecknrDPV+A+FNwmD/iQEC2ymA==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "bc4e20bbf5c1d9e4",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "+jTl2QOSYUs3seJ4:1H4PoVS4aqQ6x2y+3fa1Y86ZDY97Wg==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "bb077ad73b4006b7",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "/4N8D/y1A2yZ57aM:Ftgovgih28ML//v5jvZeVDPxnnJS",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "08b2c6aa867bf20a",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "LO8MnoLvayC4I7+l:V5P30I52IbrdT1M6hg5b9VhFPw==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "a6570082fde9b253",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "dHnrtHIMyfCaXcnD:Z+GDVp11lLom7Kapcw8JGS2fSA==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "3eb7010b7b0c2aa2",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "g3JYwh9CS2+3vHSg:PPEhkeLePsJ7LKMZkLS1UXFto6w=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "0ac71be566c72421",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "spg+EyMcsBDLCdpP:551QbPa5q7zJOKo87BdN/ry/3nfQ",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "e067d11fcc4f878e",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "d8kmb/zWpwKSyI4a:OnMctsgN9eg5z6sfkvehVXGLug==",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "b9e90c2d66e53c9f",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "EvlcLqvMO/thEiCP:A6LWkwW0yHPX3bjTrb7CpQcA6Rs=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "4558706191466665",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "QxWy+RpL+MqYIHpt:z7C5i4VSrMhj9+qzfPDPSMkrRek=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "bd571fd759ceb7d3",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "5nkKbfkUuk5XTiMs:B6nEAXdTOMUgiuoUqTVLVF0vDFzBkscXls4IWA6tLjBxQS1GKggyKZmmeweAQgwaaUkyNv1SmlwmTFXfKEWWKVeXKSVAu1zF/PU9rf2xF/Q=",
+        "gif_url": null,
+        "is_deleted": false
+    },
+    {
+        "id": "585c4213efd999b9",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "9ec43bf670f983e9",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "f2eff438317b91c7",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "07acb2691d71b7ec",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "4eca0869ab0082cb",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "b97c9751e8fdc63b",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "23b9340cd503ebbc",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "c717b9f472cd62be",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
+        "encrypted_message": "",
+        "gif_url": null,
+        "is_deleted": true
+    },
+    {
+        "id": "894808cef151ef46",
+        "sender": "akshat",
+        "recipient": "Gidi2funny",
         "encrypted_message": "",
         "gif_url": null,
         "is_deleted": true

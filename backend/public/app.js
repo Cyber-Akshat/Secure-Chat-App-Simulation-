@@ -169,23 +169,23 @@ function updateUserList(usernames) {
       updateUserList(usernames);
       await renderConversation();
     });
-
+//it serves as a guid for the heigth and width for the icons/logo
     const avatarImg = document.createElement("img");
     avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff&rounded=true&size=32`;
     avatarImg.style.width = "32px";
     avatarImg.style.height = "32px";
     avatarImg.style.marginRight = "12px";
-
+//sets the font of the logo
     const nameSpan = document.createElement("span");
     nameSpan.textContent = username;
     nameSpan.setAttribute("data-username", username);
     nameSpan.style.fontWeight = (activeRecipient === username) ? "700" : "500";
-
+//so this notifies the users another user is online
     const badgeWrapper = document.createElement("div");
     badgeWrapper.style.display = "flex";
     badgeWrapper.style.alignItems = "center";
     badgeWrapper.style.gap = "8px";
-
+//this notifies the user about unread messages
     if (unreadCounts[username] > 0) {
       const unreadBadge = document.createElement("span");
       unreadBadge.textContent = unreadCounts[username];
@@ -198,7 +198,7 @@ function updateUserList(usernames) {
       unreadBadge.style.lineHeight = "1";
       badgeWrapper.appendChild(unreadBadge);
     }
-
+//sets the color and the height of the dot
     const statusDot = document.createElement("span");
     statusDot.style.width = "8px";
     statusDot.style.height = "8px";
@@ -211,12 +211,12 @@ function updateUserList(usernames) {
     listItem.appendChild(badgeWrapper);
     userList.appendChild(listItem);
   }
-
+// styling for the usernames
   if (usernames.includes(myUsername)) {
     const myItem = document.createElement("li");
     myItem.style.opacity = "0.85";
     myItem.style.cursor = "default";
-
+//designs the avatar of the users connected and sets it position
     const myAvatar = document.createElement("img");
     myAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(myUsername)}&background=9333ea&color=fff&rounded=true&size=32`;
     myAvatar.style.width = "32px";
@@ -252,7 +252,7 @@ async function renderConversation() {
     welcomeDiv.style.marginTop = "20px";
     welcomeDiv.innerHTML = `
       <h2> 
-        <img src="C-removebg-preview.png" height="400" width="auto">
+        <img src="C-removebg-preview.png" height="400" width="auto">  
       </h2>
       <p style="color: var(--text-muted); font-size: 0.95rem;">Select an online user from the sidebar to chat privately.</p>
     `;
@@ -303,12 +303,12 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
   }
 
   textParagraph.textContent = messageText || "";
-
+//Sets text font to italic once deleted
   if (isDeleted) {
     textParagraph.style.fontStyle = "italic";
     textParagraph.style.opacity = "0.7";
   }
-
+//ensure messages are sent
   if (username === "You") {
     rowDiv.classList.add("sent");
     if (deleteBtn && !isDeleted) {
