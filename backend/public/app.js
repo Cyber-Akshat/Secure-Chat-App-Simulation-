@@ -102,7 +102,11 @@ socket.onmessage = async function(event) {
     if (data.event === "update-users") {
       updateUserList(data.usernames);
     }
+    // ============================================================================
+    // 🛑 USER INTERFACE: BACKGROUND UNREAD MESSAGE COUNTER (INBOUND INCOMING ALERT)
+    // ============================================================================
     else if (data.event === "send-message") {
+      // 1. SAVE TO HISTORY: The app always takes the incoming message and adds it to the chat history log.
       allChatLogs.push({
         id: data.id,
         sender: data.username,
@@ -112,11 +116,15 @@ socket.onmessage = async function(event) {
         is_deleted: data.is_deleted || false
       });
 
+      // 2. ALERT CHECK: The app checks if someone is texting you while you are looking away.
+      // It verifies: Is the message for you? Did someone else send it? Is their chat window currently closed?
       if (data.recipient === myUsername && data.username !== myUsername && data.username !== activeRecipient) {
+        // 3. ADD TO TALLY: It adds +1 to the unread message counter for that specific sender.
         unreadCounts[data.username] = (unreadCounts[data.username] || 0) + 1;
+        // 4. SHOW RED BADGE: It refreshes your sidebar, turning on a bright red notification bubble with the number of unread messages.
         refreshUserListUI();
       }
-
+      // 5. UPDATE SCREEN: Keeps your current active chat conversation updated in real time.
       await renderConversation();
     }
     else if (data.event === "chat-history") {
@@ -155,7 +163,7 @@ function updateUserList(usernames) {
     if (username === myUsername) continue;
 
     if (unreadCounts[username] === undefined) {
-      unreadCounts[username] = 0;
+      unreadCounts[username] = 0;//sets the unread counts of the user to 0
     }
 
     const listItem = document.createElement("li");
@@ -163,10 +171,19 @@ function updateUserList(usernames) {
       listItem.style.backgroundColor = "rgba(128, 128, 128, 0.15)";
     }
 
+    // ============================================================================
+    // 🛑 USER ACTION: SWITCHING CHATS AND CLEARING NOTIFICATION BADGES (RESET MECHANISM)
+    // ============================================================================
+    // This click interaction fires whenever you click a profile name from your sidebar contact list.
     listItem.addEventListener("click", async () => {
+      // 1. CHAT TARGET FOCUS: Sets your active chat window focus onto this selected user.
       activeRecipient = username;
+      // 2. CLEAR ALERTS: Automatically resets their unread counter tracker back to zero.
+      // Because you are actively opening their thread, the background notifications are no longer needed.
       unreadCounts[username] = 0;
+      // 3. REMOVE RED BADGE: Re-draws the sidebar user list, instantly stripping the red notification bubble away.
       updateUserList(usernames);
+      // 4. LOAD HISTORY: Opens up and smoothly pulls their historical chat log view onto your screen.
       await renderConversation();
     });
 
@@ -308,12 +325,24 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
     textParagraph.style.fontStyle = "italic";
     textParagraph.style.opacity = "0.7";
   }
-
+  // 1. IDENTITY CHECK: Ensures you can only delete your own messages.
+  // It checks if the sender of this specific message row matches the current user ("You").
   if (username === "You") {
+    // Applies the 'sent' CSS class to style your bubble (e.g., aligning it to the right).
     rowDiv.classList.add("sent");
+
+    // 2. GUARD CLAUSE: Checks if the delete button element exists AND ensures
+    // the message has not already been soft-deleted.
     if (deleteBtn && !isDeleted) {
+      // 3. REVEAL BUTTON: Unhides the delete icon/button for this message.
+      // By default, delete buttons are hidden; this makes it visible only for valid, active messages you sent.
       deleteBtn.style.display = "inline-block";
+      // 5. CONFIRMATION DIALOG: Displays a browser pop-up window with "OK" and "Cancel".
+      // This acts as a safety mechanism to prevent accidental message deletions.
       deleteBtn.addEventListener("click", () => {
+
+        // 6. WEBSOCKET OUTBOUND TRANSMISSION: Converts a JavaScript object into a JSON string
+        // and pushes it across the active WebSocket connection to the backend server.
         if (confirm("Are you sure you want to delete this message?")) {
           socket.send(JSON.stringify({
             event: "delete-message",
@@ -336,17 +365,30 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
 // ============================================================================
 // 🧹 LOCAL CLEAR CHAT ENGINE
 // ============================================================================
+// This targets the "Clear Chat" button by its HTML ID ('clear-btn').
+// The Optional Chaining operator (?.) safely checks if the button exists before adding the click event listener.
 document.getElementById("clear-btn")?.addEventListener("click", () => {
+  // 1. GUARD CLAUSE: Checks if a conversation is actually open.
+  // If 'activeRecipient' is null or empty, it stops execution and warns the user.
   if (!activeRecipient) {
     alert("Please select a user from the sidebar whose chat you want to clear.");
-    return;
+    return;// Exits the function early so no errors occur.
   }
 
+  // 2. USER CONFIRMATION: Displays a browser pop-up box with "OK" and "Cancel".
+  // This explicitly reminds the user that the action is local to their screen.
   if (confirm(`Are you sure you want to clear your conversation history with ${activeRecipient}? This will only clear it on your screen.`)) {
+
+    // 3. ARRAY FILTERING: This is the core logic.
+    // It rewrites the global 'allChatLogs' array, keeping ONLY messages that DO NOT belong to this conversation.
     allChatLogs = allChatLogs.filter(msg =>
+      // The exclamation mark (!) means NOT. We are filtering out messages where:
+      // (You sent it to the active contact) OR (The active contact sent it to you).
       !((msg.sender === myUsername && msg.recipient === activeRecipient) ||
         (msg.sender === activeRecipient && msg.recipient === myUsername))
     );
+    // 4. UI RE-RENDER: Calls the function that draws the messages to the screen.
+    // Since the relevant messages were just wiped from 'allChatLogs', it displays an empty screen instantly.
     renderConversation();
   }
 });
