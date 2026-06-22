@@ -141,7 +141,8 @@ class ChatServer:
                 "recipient": recipient,
                 "encrypted_message": encrypted_text,
                 "gif_url": gif_url,
-                "is_deleted": False
+                "is_deleted": False,
+                "timestamp" : time.time() # Gets the real time of the message sent
             }
             logs.append(new_entry)
 
