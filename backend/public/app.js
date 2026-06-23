@@ -527,7 +527,7 @@ function renderEmojiGrid(category) {
       const end   = messageInput.selectionEnd   ?? messageInput.value.length;
       messageInput.value = messageInput.value.slice(0, start) + emoji + messageInput.value.slice(end);
       // Restore cursor position just after the inserted emoji
-      const newCursor = start + [...emoji].length;
+      const newCursor = start + emoji.length;
       messageInput.setSelectionRange(newCursor, newCursor);
       messageInput.focus();
     });

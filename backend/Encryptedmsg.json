@@ -732,5 +732,14 @@
         "gif_url": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTRrZm02djJyamNycGpxNmhiemEwYjk3NWVjMHB1ZWFxbWwya3l4ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pj6kX3c8bRijBrl6yR/giphy.gif",
         "is_deleted": false,
         "timestamp": 1782205140.8908901
+    },
+    {
+        "id": "c9205a884196ce4c",
+        "sender": "Patrick",
+        "recipient": "A",
+        "encrypted_message": "heJmRIHUHuI4EES3:qpuTkPnzEVEre5yn1L5mRFZ7KlX040fNvbU=",
+        "gif_url": null,
+        "is_deleted": false,
+        "timestamp": 1782205235.0998402
     }
 ]
