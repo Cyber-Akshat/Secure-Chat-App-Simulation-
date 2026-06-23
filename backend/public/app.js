@@ -482,6 +482,92 @@ document.getElementById("form")?.addEventListener("submit", async (e) => {
 });
 
 // ============================================================================
+// EMOJI PICKER
+// ============================================================================
+const EMOJI_CATEGORIES = {
+  smileys:    ["😀","😁","😂","🤣","😊","😇","🙂","😉","😍","🥰","😘","😜","🤔","😐","😑","😶","🙄","😏","😒","😞","😔","😟","😕","🙁","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤯","😳","🥴","😵","🤐","😷","🤒","🤕"],
+  gestures:   ["👋","🤚","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","🤲","🤝","🙏","💪","🦾","🫱","🫲","🫳","🫴","🫵"],
+  hearts:     ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","❤️‍🔥","❤️‍🩹","🫀"],
+  animals:    ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🪶","🐓","🦃","🦤","🦚","🦜","🦢","🦩","🕊️","🐇","🦝","🦨","🦡","🦫","🦦","🦥","🐁","🐀","🐿️","🦔"],
+  food:       ["🍕","🍔","🌮","🌯","🥗","🍜","🍣","🍱","🍛","🍲","🥘","🍝","🍠","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🧃","🥤","🧋","☕","🍵","🧉","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🍾","🧊","🥄","🍴","🍽️"],
+  activities: ["⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🥊","🥋","🎽","🛹","🛼","🛷","⛸️","🥅","⛳","🎣","🤿","🎽","🎿","🛷","🥌","🎯","🪃","🏹","🎣","🤿","🎽","🎮","🕹️","🎲","🧩","🧸","♟️","🃏","🀄","🎴","🎭","🎨","🖼️","🎰","🎳"],
+  symbols:    ["✅","❌","⭕","🔴","🟠","🟡","🟢","🔵","🟣","⚫","⚪","🟤","🔶","🔷","🔸","🔹","🔺","🔻","💠","🔘","🔲","🔳","▪️","▫️","◾","◽","◼️","◻️","🔈","🔉","🔊","📢","📣","🔔","🔕","🎵","🎶","💯","🔥","✨","🌟","⭐","🌈","☀️","🌤️","⛅","🌧️","⛈️","🌩️","❄️","🌊","💧","🌸","🌺","🌻","🌹","🍀","🌿","🍃"],
+};
+
+let currentEmojiCategory = "smileys";
+
+const emojiToggleBtn  = document.getElementById("emoji-toggle-btn");
+const emojiDrawer     = document.getElementById("emoji-drawer");
+const closeEmojiBtn   = document.getElementById("close-emoji-btn");
+const emojiGrid       = document.getElementById("emoji-grid");
+const messageInput    = document.getElementById("data");
+
+function renderEmojiGrid(category) {
+  if (!emojiGrid) return;
+  emojiGrid.replaceChildren();
+
+  // Highlight the active tab
+  document.querySelectorAll(".emoji-tab-btn").forEach(btn => {
+    btn.style.opacity    = btn.dataset.category === category ? "1" : "0.45";
+    btn.style.transform  = btn.dataset.category === category ? "scale(1.2)" : "scale(1)";
+  });
+
+  EMOJI_CATEGORIES[category].forEach(emoji => {
+    const btn = document.createElement("button");
+    btn.type        = "button";
+    btn.textContent = emoji;
+    btn.title       = emoji;
+    btn.style.cssText = "background:none;border:none;font-size:1.4rem;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;";
+    btn.addEventListener("mouseenter", () => btn.style.background = "rgba(128,128,128,0.15)");
+    btn.addEventListener("mouseleave", () => btn.style.background = "none");
+
+    // Insert the emoji at the cursor position rather than always appending to the end
+    btn.addEventListener("click", () => {
+      const start = messageInput.selectionStart ?? messageInput.value.length;
+      const end   = messageInput.selectionEnd   ?? messageInput.value.length;
+      messageInput.value = messageInput.value.slice(0, start) + emoji + messageInput.value.slice(end);
+      // Restore cursor position just after the inserted emoji
+      const newCursor = start + [...emoji].length;
+      messageInput.setSelectionRange(newCursor, newCursor);
+      messageInput.focus();
+    });
+
+    emojiGrid.appendChild(btn);
+  });
+}
+
+// Tab switching
+document.querySelectorAll(".emoji-tab-btn").forEach(btn => {
+  btn.style.cssText = "background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px 6px;border-radius:6px;transition:transform 0.15s,opacity 0.15s;";
+  btn.addEventListener("click", () => {
+    currentEmojiCategory = btn.dataset.category;
+    renderEmojiGrid(currentEmojiCategory);
+  });
+});
+
+// Toggle open/close
+emojiToggleBtn?.addEventListener("click", () => {
+  const isHidden = emojiDrawer.style.display === "none" || !emojiDrawer.style.display;
+  emojiDrawer.style.display = isHidden ? "flex" : "none";
+  if (isHidden) renderEmojiGrid(currentEmojiCategory);
+  // Close the GIF drawer if it's open at the same time
+  if (gifDrawer) gifDrawer.style.display = "none";
+});
+
+closeEmojiBtn?.addEventListener("click", () => {
+  emojiDrawer.style.display = "none";
+});
+
+// Close emoji drawer if user clicks outside it
+document.addEventListener("click", (e) => {
+  if (emojiDrawer && emojiDrawer.style.display === "flex") {
+    if (!emojiDrawer.contains(e.target) && e.target !== emojiToggleBtn) {
+      emojiDrawer.style.display = "none";
+    }
+  }
+});
+
+// ============================================================================
 // 🕒 TIMESTAMP FORMATTING UTILITY
 // ============================================================================
 function formatChatTimestamp(unixTimestamp) {

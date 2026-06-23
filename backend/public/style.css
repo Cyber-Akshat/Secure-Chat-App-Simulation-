@@ -115,6 +115,9 @@ body::after {
 .darkmode #theme-switch .sun-icon {
   display: block;
 }
+.darkmode #emoji-toggle-btn img {
+  filter: invert(1);
+}
 
 /* ============================================================================
    TOP NAVIGATION HEADER

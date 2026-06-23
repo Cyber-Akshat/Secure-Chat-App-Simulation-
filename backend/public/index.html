@@ -47,6 +47,23 @@
           <div id="gif-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px; overflow-y: auto; max-height: 230px;"></div>
         </div>
 
+        <div id="emoji-drawer" style="display: none; position: absolute; bottom: 65px; right: 330px; background: white; border: 1px solid #ccd0d5; border-radius: 8px; width: 300px; max-height: 280px; flex-direction: column; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #f0f2f5; border-bottom: 1px solid #e4e6eb; font-size: 13px; font-weight: 600;">
+            <span style="color: #333d47;">Emojis</span>
+            <button type="button" id="close-emoji-btn" style="background: none; border: none; cursor: pointer; color: #888; font-size: 14px;">✕</button>
+          </div>
+          <div style="display: flex; gap: 4px; padding: 6px 10px; border-bottom: 1px solid #e4e6eb; flex-wrap: wrap;">
+            <button type="button" class="emoji-tab-btn active-tab" data-category="smileys">😊</button>
+            <button type="button" class="emoji-tab-btn" data-category="gestures">👋</button>
+            <button type="button" class="emoji-tab-btn" data-category="hearts">❤️</button>
+            <button type="button" class="emoji-tab-btn" data-category="animals">🐶</button>
+            <button type="button" class="emoji-tab-btn" data-category="food">🍕</button>
+            <button type="button" class="emoji-tab-btn" data-category="activities">⚽</button>
+            <button type="button" class="emoji-tab-btn" data-category="symbols">✅</button>
+          </div>
+          <div id="emoji-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px; overflow-y: auto; max-height: 200px;"></div>
+        </div>
+
         <div id="typing-indicator"></div>
 
         <form id="form">
@@ -58,6 +75,9 @@
             title="Press Enter or click Send to submit"
           />
           <button type="button" id="gif-toggle-btn" class="chat-gif-button" title="Send a GIF">GIF</button>
+          <button type="button" id="emoji-toggle-btn" class="chat-gif-button" title="Send an emoji">
+  <img src="add_reaction_24dp_B89230_FILL0_wght400_GRAD0_opsz24.svg" alt="Emoji" width="20" height="20" style="display:block;" />
+</button>
           <button type="submit" id="send">Send ᯓ✉︎</button>
         </form>
       </main>
