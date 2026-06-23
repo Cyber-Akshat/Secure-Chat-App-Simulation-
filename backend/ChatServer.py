@@ -119,10 +119,14 @@ class ChatServer:
                 "is_deleted": False
             }, sender=username, recipient=recipient) #formats the msg
 
+
         elif event_type == "delete-message":
             msg_id = data.get("id")
+            # Reads the mode parameter sent by the JavaScript button click
+            mode = data.get("mode", "permanent")
             if msg_id:
-                await self.delete_from_json_file(msg_id, username) #fully deletes msg from json file by their id
+                # Passes the mode along to the file management system
+                await self.delete_from_json_file(msg_id, username, mode)
 
         elif event_type == "clear-chat":
             pass #this just means that clearing the chat doesn't create a new id in the encryptedmsg.json
@@ -149,8 +153,10 @@ class ChatServer:
             with open(self.storage_file, "w", encoding="utf-8") as f:
                 json.dump(logs, f, indent=4, ensure_ascii=False)
 
-    async def delete_from_json_file(self, msg_id: str, username: str):
-        #marks a message as deleted in storage instead of erasing the item row
+    async def delete_from_json_file(self, msg_id: str, username: str, mode: str = "permanent"):
+        # ============================================================================
+        # 🗑️ SERVER SIDE: THREE-OPTION DELETION MANAGEMENT
+        # ============================================================================
         async with self.file_lock:
             try:
                 with open(self.storage_file, "r", encoding="utf-8") as f:
@@ -158,23 +164,38 @@ class ChatServer:
             except (json.JSONDecodeError, FileNotFoundError):
                 return
 
-            target_msg = next((m for m in logs if m.get("id") == msg_id), None) #gets id of the msg
+            # Locate the targeted message to identify the recipient
+            target_msg = next((m for m in logs if m.get("id") == msg_id), None)
 
-            if target_msg and target_msg.get("sender") == username:
-                # Mark as deleted and wipe encrypted data safely
-                target_msg["is_deleted"] = True
-                target_msg["encrypted_message"] = ""
-                target_msg["gif_url"] = None
-                recipient = target_msg.get("recipient") #many checks to see if the deleted msg is the one chosen
+            # Security guard clause: exit if the message doesn't exist or isn't yours
+            if not target_msg or target_msg.get("sender") != username:
+                return
+
+            recipient = target_msg.get("recipient")
+
+            # BUTTON A PATH: PERMANENT DELETION (Completely wipe from JSON history file)
+            if mode == "permanent":
+                # Rebuilds the list, completely excluding the targeted message dictionary entry object
+                logs = [m for m in logs if m.get("id") != msg_id]
 
                 with open(self.storage_file, "w", encoding="utf-8") as f:
                     json.dump(logs, f, indent=4, ensure_ascii=False)
 
-                # Broadcast delete status to private participants
-                await self.broadcast_private({
-                    "event": "delete-message",
-                    "id": msg_id
-                }, sender=username, recipient=recipient)
+            # BUTTON B PATH: TEMPORARY DELETION (Soft-delete structural placeholder)
+            elif mode == "temporary":
+                # Keeps the item row layout intact but strips the contents safely
+                target_msg["is_deleted"] = True
+                target_msg["encrypted_message"] = ""
+                target_msg["gif_url"] = None
+
+                with open(self.storage_file, "w", encoding="utf-8") as f:
+                    json.dump(logs, f, indent=4, ensure_ascii=False)
+
+            # Broadcast live drop status down to the active web sockets of both participants
+            await self.broadcast_private({
+                "event": "delete-message",
+                "id": msg_id
+            }, sender=username, recipient=recipient)
 
     async def client_disconnected(self, username: str):#func deletes clients when they dc
         if username in self.connected_clients:
