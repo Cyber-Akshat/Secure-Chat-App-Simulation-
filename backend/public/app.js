@@ -337,20 +337,63 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
     bubbleContainer.appendChild(timeContainer);
   }
 
+  // ============================================================================
+  // 🗑️ USER ACTION: THREE-BUTTON DELETION INTERCEPTOR (PERMANENT / TEMPORARY / CANCEL)
+  // ============================================================================
   // 1. IDENTITY CHECK: Ensures you can only delete your own messages.
   if (username === "You") {
     rowDiv.classList.add("sent");
 
+    // 2. GUARD CLAUSE: Checks if the delete button exists and if the message is active.
     if (deleteBtn && !isDeleted) {
+      // Unhide the main delete icon/button for your active message row.
       deleteBtn.style.display = "inline-block";
+
+      // 3. ACTION MENU INJECTOR: Spawns three true interactive options on click.
       deleteBtn.addEventListener("click", () => {
-        if (confirm("Are you sure you want to delete this message?")) {
-          socket.send(JSON.stringify({
-            event: "delete-message",
-            id: msgId
-          }));
-        }
+        // Prevent duplicate menus from stacking up if clicked twice
+        if (rowDiv.querySelector(".custom-delete-menu")) return;
+
+        // Create a temporary layout container row
+        const menuContainer = document.createElement("div");
+        menuContainer.className = "custom-delete-menu";
+        menuContainer.style.cssText = "display: flex; gap: 5px; margin-top: 5px; font-size: 12px;";
+
+        // Button A: Delete Permanently
+        const btnPermanent = document.createElement("button");
+        btnPermanent.textContent = "🗑️ Permanently";
+        btnPermanent.style.cssText = "background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
+        btnPermanent.addEventListener("click", () => {
+          socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "permanent" }));
+          menuContainer.remove();
+        });
+
+        // Button B: Delete Temporarily
+        const btnTemporary = document.createElement("button");
+        btnTemporary.textContent = "⏱️ Temporarily";
+        btnTemporary.style.cssText = "background: #ffcc00; color: black; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
+        btnTemporary.addEventListener("click", () => {
+          socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "temporary" }));
+          menuContainer.remove();
+        });
+
+        // Button C: Cancel
+        const btnCancel = document.createElement("button");
+        btnCancel.textContent = "❌ Cancel";
+        btnCancel.style.cssText = "background: #ccc; color: black; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
+        btnCancel.addEventListener("click", () => {
+          menuContainer.remove(); // Safely closes the choices without actions
+        });
+
+        // Assemble the buttons into the card view container
+        menuContainer.appendChild(btnPermanent);
+        menuContainer.appendChild(btnTemporary);
+        menuContainer.appendChild(btnCancel);
+
+        // Inject the choice interface right inside the active message row block layout
+        rowDiv.appendChild(menuContainer);
       });
+
     } else if (deleteBtn) {
       deleteBtn.remove();
     }
