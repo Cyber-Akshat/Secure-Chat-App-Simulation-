@@ -1,5 +1,5 @@
 import json
-import os
+import sqlite3
 import asyncio
 import time
 import secrets
@@ -8,18 +8,34 @@ from fastapi import WebSocket, WebSocketDisconnect
 
 class ChatServer:
     def __init__(self):
-        self.connected_clients: dict[str, WebSocket] = {} #creates a dict with the clients and their websockets (like a client id)
-        self.file_lock = asyncio.Lock() #stores into encryptedmsg.json
-        self.storage_file = "Encryptedmsg.json" # <- creates the file
+        self.connected_clients: dict[str, WebSocket] = {}  # Dict for clients and websockets
+        self.db_file = "chat_messages.db"  # Database file name
 
-        self.throttle_tracker = { #real time tracker for spamming prevention
+        self.throttle_tracker = {  # Real-time spam prevention tracker
             "current_spammer": None,
-            "timestamps": [] #stores timestamps of messages sent
+            "timestamps": []
         }
 
-        if not os.path.exists(self.storage_file): #checks if encryptedmsg.json exists
-            with open(self.storage_file, "w", encoding="utf-8") as f:
-                json.dump([], f) #stores the messages (encrypted) into encryptedmsg.json
+        self.init_database()
+
+    def init_database(self):
+        """Initializes the SQLite database and creates the messages table if it doesn't exist."""
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS messages
+                       (
+                           id TEXT PRIMARY KEY,
+                           sender TEXT,
+                           recipient TEXT, 
+                           encrypted_message TEXT,
+                           gif_url TEXT,
+                           is_deleted INTEGER DEFAULT 0,
+                           timestamp REAL
+                       )
+                       """)
+        conn.commit()
+        conn.close()
 
     def is_rate_limited(self, username: str) -> bool:
         current_time = time.time()
@@ -38,18 +54,17 @@ class ChatServer:
 
         if len(self.throttle_tracker["timestamps"]) > 10:
             return True
-        # if > 10 msgs sent in < 10 secs, flag as spammer
 
         return False
 
     async def handle_connection(self, websocket: WebSocket):
         username = websocket.query_params.get("username")
 
-        if not username: #if no username, give code 1003
+        if not username:
             await websocket.close(code=1003, reason="Username is required")
             return
 
-        if username in self.connected_clients: #if user taken, give error code 1008
+        if username in self.connected_clients:
             await websocket.close(code=1008, reason=f"Username {username} is already taken")
             return
 
@@ -57,34 +72,51 @@ class ChatServer:
         self.connected_clients[username] = websocket
         print(f"New client connected: {username}")
 
-        await self.broadcast_usernames() #saves usernames
-        await self.send_chat_history(websocket) #saves chat history
+        await self.broadcast_usernames()
+        await self.send_chat_history(websocket)
 
         try:
             while True:
-                raw_message = await websocket.receive_text() #for receiving messages for other people
-                await self.receive_message(username, raw_message) #username and raw msgs no encryption
+                raw_message = await websocket.receive_text()
+                await self.receive_message(username, raw_message)
         except WebSocketDisconnect:
-            await self.client_disconnected(username) #if dc, dc user from the server
+            await self.client_disconnected(username)
 
     async def send_chat_history(self, websocket: WebSocket):
-        async with self.file_lock:
-            try:
-                with open(self.storage_file, "r", encoding="utf-8") as f: #opens the chat log file, encrypts it
-                    logs = json.load(f)
-            except (json.JSONDecodeError, FileNotFoundError): #if the json file doesnt exist (shouldnt)...
-                logs = [] #... store the logs in this dict which gets created
+        """Fetches all history logs from the SQLite database asynchronously."""
+        logs = []
+        try:
+            await asyncio.to_thread(self._fetch_history_sync, logs)
+        except Exception as e:
+            print(f"Error fetching database history: {e}")
 
-        await websocket.send_text(json.dumps({ #the format for the chat logs)
+        await websocket.send_text(json.dumps({
             "event": "chat-history",
             "messages": logs
         }))
+
+    def _fetch_history_sync(self, logs_list):
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, sender, recipient, encrypted_message, gif_url, is_deleted, timestamp FROM messages")
+        rows = cursor.fetchall()
+        for row in rows:
+            logs_list.append({
+                "id": row,
+                "sender": row,
+                "recipient": row,
+                "encrypted_message": row,
+                "gif_url": row,
+                "is_deleted": bool(row),
+                "timestamp": row
+            })
+        conn.close()
 
     async def receive_message(self, username: str, raw_message: str):
         try:
             data = json.loads(raw_message)
         except json.JSONDecodeError:
-            return #if the json can't decrypt, it doesn't load the message for safety
+            return
 
         event_type = data.get("event")
 
@@ -94,20 +126,20 @@ class ChatServer:
                 if user_socket:
                     await user_socket.send_text(json.dumps({
                         "event": "error",
-                        "message": "Spam protection active. You cannot send more than 10 messages consecutively within 10 seconds without a reply!" #if user has been rate limited, show this msg instead of sending their text
+                        "message": "Spam protection active. You cannot send more than 10 messages consecutively within 10 seconds without a reply!"
                     }))
                 print(f"⚠️  [Rate Limit Flagged] Blocked transmission from user: {username}")
                 return
 
-            msg_id = secrets.token_hex(8) #creates an id for each msg
+            msg_id = secrets.token_hex(8)
             message_payload = data.get("message", "")
             gif_payload = data.get("gifUrl")
             recipient = data.get("recipient")
 
             if not recipient:
-                return #if msg has no set recipient, don't send it
+                return
 
-            await self.save_to_json_file(msg_id, username, recipient, message_payload, gif_payload) #saves all this msg data to encrypedmsg.json
+            await self.save_to_database(msg_id, username, recipient, message_payload, gif_payload)
 
             await self.broadcast_private({
                 "event": "send-message",
@@ -117,94 +149,81 @@ class ChatServer:
                 "message": message_payload,
                 "gifUrl": gif_payload,
                 "is_deleted": False
-            }, sender=username, recipient=recipient) #formats the msg
-
+            }, sender=username, recipient=recipient)
 
         elif event_type == "delete-message":
             msg_id = data.get("id")
-            # Reads the mode parameter sent by the JavaScript button click
             mode = data.get("mode", "permanent")
             if msg_id:
-                # Passes the mode along to the file management system
-                await self.delete_from_json_file(msg_id, username, mode)
+                await self.delete_from_database(msg_id, username, mode)
 
         elif event_type == "clear-chat":
-            pass #this just means that clearing the chat doesn't create a new id in the encryptedmsg.json
+            pass
 
-    async def save_to_json_file(self, msg_id: str, username: str, recipient: str, encrypted_text: str, gif_url: str or None): #stores metadata of messages as strs
-        async with self.file_lock:
-            try:
-                with open(self.storage_file, "r", encoding="utf-8") as f:
-                    logs = json.load(f)
-            except (json.JSONDecodeError, FileNotFoundError):
-                logs = []
+    async def save_to_database(self, msg_id: str, username: str, recipient: str, encrypted_text: str,
+                               gif_url: str or None):
+        """Inserts a clean entry record safely into the SQLite engine table."""
+        current_timestamp = time.time()
+        await asyncio.to_thread(
+            self._save_sync, msg_id, username, recipient, encrypted_text, gif_url, current_timestamp
+        )
 
-            new_entry = {
-                "id": msg_id,
-                "sender": username,
-                "recipient": recipient,
-                "encrypted_message": encrypted_text,
-                "gif_url": gif_url,
-                "is_deleted": False,
-                "timestamp" : time.time() # Gets the real time of the message sent
-            }
-            logs.append(new_entry)
+    def _save_sync(self, msg_id, username, recipient, encrypted_text, gif_url, timestamp):
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO messages (id, sender, recipient, encrypted_message, gif_url, is_deleted, timestamp) VALUES (?, ?, ?, ?, ?, 0, ?)",
+            (msg_id, username, recipient, encrypted_text, gif_url, timestamp)
+        )
+        conn.commit()
+        conn.close()
 
-            with open(self.storage_file, "w", encoding="utf-8") as f:
-                json.dump(logs, f, indent=4, ensure_ascii=False)
+    async def delete_from_database(self, msg_id: str, username: str, mode: str = "permanent"):
+        """Handles both temporary (soft) and permanent (hard) table updates on separate threads."""
+        recipient = await asyncio.to_thread(self._delete_sync, msg_id, username, mode)
 
-    async def delete_from_json_file(self, msg_id: str, username: str, mode: str = "permanent"):
-        # ============================================================================
-        # 🗑️ SERVER SIDE: THREE-OPTION DELETION MANAGEMENT
-        # ============================================================================
-        async with self.file_lock:
-            try:
-                with open(self.storage_file, "r", encoding="utf-8") as f:
-                    logs = json.load(f)
-            except (json.JSONDecodeError, FileNotFoundError):
-                return
-
-            # Locate the targeted message to identify the recipient
-            target_msg = next((m for m in logs if m.get("id") == msg_id), None)
-
-            # Security guard clause: exit if the message doesn't exist or isn't yours
-            if not target_msg or target_msg.get("sender") != username:
-                return
-
-            recipient = target_msg.get("recipient")
-
-            # BUTTON A PATH: PERMANENT DELETION (Completely wipe from JSON history file)
-            if mode == "permanent":
-                # Rebuilds the list, completely excluding the targeted message dictionary entry object
-                logs = [m for m in logs if m.get("id") != msg_id]
-
-                with open(self.storage_file, "w", encoding="utf-8") as f:
-                    json.dump(logs, f, indent=4, ensure_ascii=False)
-
-            # BUTTON B PATH: TEMPORARY DELETION (Soft-delete structural placeholder)
-            elif mode == "temporary":
-                # Keeps the item row layout intact but strips the contents safely
-                target_msg["is_deleted"] = True
-                target_msg["encrypted_message"] = ""
-                target_msg["gif_url"] = None
-
-                with open(self.storage_file, "w", encoding="utf-8") as f:
-                    json.dump(logs, f, indent=4, ensure_ascii=False)
-
-            # Broadcast live drop status down to the active web sockets of both participants
+        if recipient:
+            # Broadcast drop notification event status to private participants
             await self.broadcast_private({
                 "event": "delete-message",
                 "id": msg_id
             }, sender=username, recipient=recipient)
 
-    async def client_disconnected(self, username: str):#func deletes clients when they dc
+    def _delete_sync(self, msg_id, username, mode):
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+
+        # Security guard check: Ensure sender owns the message and retrieve recipient info
+        cursor.execute("SELECT recipient FROM messages WHERE id = ? AND sender = ?", (msg_id, username))
+        result = cursor.fetchone()
+
+        recipient = None
+        if result:
+            recipient = result
+
+            # BUTTON A PATH: PERMANENT DELETION (Completely erase row record structural entity)
+            if mode == "permanent":
+                cursor.execute("DELETE FROM messages WHERE id = ?", (msg_id,))
+
+            # BUTTON B PATH: TEMPORARY DELETION (Soft delete, clear payload values)
+            elif mode == "temporary":
+                cursor.execute(
+                    "UPDATE messages SET is_deleted = 1, encrypted_message = '', gif_url = NULL WHERE id = ?",
+                    (msg_id,)
+                )
+            conn.commit()
+
+        conn.close()
+        return recipient
+
+    async def client_disconnected(self, username: str):
         if username in self.connected_clients:
             del self.connected_clients[username]
-        await self.broadcast_usernames() #broadcasts the new set of users
+        await self.broadcast_usernames()
 
     async def broadcast_usernames(self):
-        usernames = list(self.connected_clients.keys()) #list of connected users
-        await self.broadcast_global({"event": "update-users", "usernames": usernames}) #updates the users connected
+        usernames = list(self.connected_clients.keys())
+        await self.broadcast_global({"event": "update-users", "usernames": usernames})
 
     async def broadcast_private(self, message: dict, sender: str, recipient: str):
         message_string = json.dumps(message)
@@ -214,7 +233,7 @@ class ChatServer:
                 try:
                     await client.send_text(message_string)
                 except Exception:
-                    pass #dont create new id for msgs that havent been sent
+                    pass
 
     async def broadcast_global(self, message: dict):
         message_string = json.dumps(message)
