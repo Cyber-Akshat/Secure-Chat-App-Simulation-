@@ -328,6 +328,9 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
     bubbleContainer.appendChild(timeContainer);
   }
 
+  // ============================================================================
+  // 🗑️ USER ACTION: THREE-BUTTON DELETION INTERCEPTOR (SVG IMAGE FILE ASSETS)
+  // ============================================================================
   if (username === "You") {
     rowDiv.classList.add("sent");
 
@@ -339,27 +342,42 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
 
         const menuContainer = document.createElement("div");
         menuContainer.className = "custom-delete-menu";
-        menuContainer.style.cssText = "display: flex; gap: 5px; margin-top: 5px; font-size: 12px;";
+        menuContainer.style.cssText = "display: flex; gap: 6px; margin-top: 6px; font-size: 12px; align-items: center;";
 
+        // 1. BUTTON A: Delete Permanently (Uses delete.svg)
         const btnPermanent = document.createElement("button");
-        btnPermanent.textContent = "🗑️ Permanently";
-        btnPermanent.style.cssText = "background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
+        btnPermanent.title = "Delete Permanently";
+        btnPermanent.style.cssText = "background: #ff4d4d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
+        btnPermanent.textContent = "";
+        btnPermanent.innerHTML = `
+          <img src="delete.svg" width="14" height="14" style="filter: invert(1); display: block;" />
+          <span style="margin-left: 4px;">Permanently</span>
+        `;
         btnPermanent.addEventListener("click", () => {
           socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "permanent" }));
           menuContainer.remove();
         });
 
+        // 2. BUTTON B: Delete Temporarily (Uses chat_dashed.svg)
         const btnTemporary = document.createElement("button");
-        btnTemporary.textContent = "⏱️ Temporarily";
-        btnTemporary.style.cssText = "background: #ffcc00; color: black; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
+        btnTemporary.title = "Delete Temporarily";
+        btnTemporary.style.cssText = "background: #ffcc00; color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
+        btnTemporary.textContent = "";
+        btnTemporary.innerHTML = `
+          <img src="chat_dashed.svg" width="14" height="14" style="display: block;" />
+          <span style="margin-left: 4px;">Temporarily</span>
+        `;
         btnTemporary.addEventListener("click", () => {
           socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "temporary" }));
           menuContainer.remove();
         });
 
+        // 3. BUTTON C: Cancel
         const btnCancel = document.createElement("button");
-        btnCancel.textContent = "❌ Cancel";
-        btnCancel.style.cssText = "background: #ccc; color: black; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
+        btnCancel.title = "Cancel";
+        btnCancel.style.cssText = "background: #ccc; color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
+        btnCancel.textContent = "";
+        btnCancel.innerHTML = `<span>Cancel</span>`;
         btnCancel.addEventListener("click", () => {
           menuContainer.remove();
         });

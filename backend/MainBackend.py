@@ -17,6 +17,7 @@ class AuthRequest(BaseModel):
     password: str
 
 
+
 @app.post("/api/register")
 #Uses the user & pass from AuthRequest to try register an account
 #also handles conflicts such as duplicate usernames (409)

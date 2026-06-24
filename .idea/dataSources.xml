@@ -29,5 +29,12 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/backend/user_auth.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="chat_messages [2]" uuid="47fc501f-51ff-49ef-8ce5-78f784950a67">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\s2500136\OneDrive - Notre Dame Catholic Sixth Form College\Secure Chat App\Secure-Chat-App-Simulation-\backend\chat_messages.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
