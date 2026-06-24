@@ -470,6 +470,60 @@ function loadOpenAccessGifs() {
 }
 
 // ============================================================================
+// EMOJI DRAWER MANAGEMENT
+// ============================================================================
+function loadEmojiCategory(category) {
+  if (!emojiGrid) return;
+  emojiGrid.replaceChildren();
+  const emojis = EMOJI_CATEGORIES[category] || [];
+  emojis.forEach(emoji => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = emoji;
+    btn.style.cssText = "background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 4px; border-radius: 4px;";
+    btn.addEventListener("click", () => {
+      if (chatInput) {
+        chatInput.value += emoji;
+        chatInput.focus();
+      }
+      emojiDrawer.style.display = "none";
+    });
+    emojiGrid.appendChild(btn);
+  });
+}
+
+// Tab switching
+document.querySelectorAll(".emoji-tab-btn").forEach(tabBtn => {
+  tabBtn.addEventListener("click", () => {
+    document.querySelectorAll(".emoji-tab-btn").forEach(b => b.classList.remove("active-tab"));
+    tabBtn.classList.add("active-tab");
+    loadEmojiCategory(tabBtn.dataset.category);
+  });
+});
+
+const emojiToggleBtn = document.getElementById("emoji-toggle-btn");
+const emojiDrawer = document.getElementById("emoji-drawer");
+const closeEmojiBtn = document.getElementById("close-emoji-btn");
+const emojiGrid = document.getElementById("emoji-grid");
+
+if (emojiToggleBtn && emojiDrawer) {
+  emojiToggleBtn.addEventListener("click", () => {
+    if (emojiDrawer.style.display === "none" || !emojiDrawer.style.display) {
+      emojiDrawer.style.display = "flex";
+      loadEmojiCategory("smileys"); // load default tab
+    } else {
+      emojiDrawer.style.display = "none";
+    }
+  });
+}
+
+if (closeEmojiBtn && emojiDrawer) {
+  closeEmojiBtn.addEventListener("click", () => {
+    emojiDrawer.style.display = "none";
+  });
+}
+
+// ============================================================================
 // CHAT FORM INPUT SUBMIT ACTION
 // ============================================================================
 document.getElementById("form")?.addEventListener("submit", async (e) => {
@@ -508,7 +562,7 @@ const EMOJI_CATEGORIES = {
   smileys:    ["😀","😁","😂","🤣","😊","😇","🙂","😉","😍","🥰","😘","😜","🤔","😐","😑","😶","🙄","😏","😒","😞","😔","😟","😕","🙁","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤯","😳","🥴","😵","🤐","😷","🤒","🤕"],
   gestures:   ["👋","🤚","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","🤲","🤝","🙏","💪","🦾","🫱","🫲","🫳","🫴","🫵"],
   hearts:     ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","❤️‍🔥","❤️‍🩹","🫀"],
-  animals:    ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆"," eagles","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧"]
+  animals:    ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧"]
 };
 
 const EMOJI_SUGGESTIONS = {
