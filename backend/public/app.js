@@ -584,17 +584,17 @@ const EMOJI_CATEGORIES = {
 };
 
 const EMOJI_SUGGESTIONS = {
-  "lol": "😂",
-  "rofl": "🤣",
-  "lmao": "💀",
-  "omg": "😱",
-  "wtf": "🤬",
-  "brb": "⏰",
-  "btw": "🤷",
-  "love": "❤️",
-  "hey": "👋",
-  "hi": "👋",
-  "sad": "😢"
+  ":lol": "😂",
+  ":rofl": "🤣",
+  ":lmao": "💀",
+  ":omg": "😱",
+  ":wtf": "🤬",
+  ":brb": "⏰",
+  ":btw": "🤷",
+  ":love": "❤️",
+  ":hey": "👋",
+  ":hi": "👋",
+  ":sad": "😢"
 };
 
 const chatInput = document.getElementById("data");
