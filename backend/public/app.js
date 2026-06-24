@@ -7,6 +7,11 @@ function sanitizeUsername(raw) {
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
 
+function formatChatTimestamp(unixTimestamp) {
+  const date = new Date(unixTimestamp * 1000);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // ============================================================================
 // LIGHT MODE / DARK MODE LOCAL LIFECYCLE
 // ============================================================================
@@ -102,11 +107,7 @@ socket.onmessage = async function(event) {
     if (data.event === "update-users") {
       updateUserList(data.usernames);
     }
-    // ============================================================================
-    // 🛑 USER INTERFACE: BACKGROUND UNREAD MESSAGE COUNTER (INBOUND INCOMING ALERT)
-    // ============================================================================
     else if (data.event === "send-message") {
-      // 1. SAVE TO HISTORY: The app always takes the incoming message and adds it to the chat history log.
       allChatLogs.push({
         id: data.id,
         sender: data.username,
@@ -114,17 +115,13 @@ socket.onmessage = async function(event) {
         encrypted_message: data.message,
         gif_url: data.gifUrl,
         is_deleted: data.is_deleted || false,
-        timestamp: data.timestamp || (Date.now() / 1000) // Fallback to current local time
+        timestamp: data.timestamp || (Date.now() / 1000)
       });
 
-      // 2. ALERT CHECK: The app checks if someone is texting you while you are looking away.
       if (data.recipient === myUsername && data.username !== myUsername && data.username !== activeRecipient) {
-        // 3. ADD TO TALLY: It adds +1 to the unread message counter for that specific sender.
         unreadCounts[data.username] = (unreadCounts[data.username] || 0) + 1;
-        // 4. SHOW RED BADGE: It refreshes your sidebar, turning on a bright red notification bubble.
         refreshUserListUI();
       }
-      // 5. UPDATE SCREEN: Keeps your current active chat conversation updated in real time.
       await renderConversation();
     }
     else if (data.event === "chat-history") {
@@ -163,7 +160,7 @@ function updateUserList(usernames) {
     if (username === myUsername) continue;
 
     if (unreadCounts[username] === undefined) {
-      unreadCounts[username] = 0; //sets the unread counts of the user to 0
+      unreadCounts[username] = 0;
     }
 
     const listItem = document.createElement("li");
@@ -171,9 +168,6 @@ function updateUserList(usernames) {
       listItem.style.backgroundColor = "rgba(128, 128, 128, 0.15)";
     }
 
-    // ============================================================================
-    // 🛑 USER ACTION: SWITCHING CHATS AND CLEARING NOTIFICATION BADGES
-    // ============================================================================
     listItem.addEventListener("click", async () => {
       activeRecipient = username;
       unreadCounts[username] = 0;
@@ -320,9 +314,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
     textParagraph.style.opacity = "0.7";
   }
 
-  // ============================================================================
-  // 🕒 TIMESTAMP INJECTION ENGINE
-  // ============================================================================
   if (timestamp) {
     const timeContainer = document.createElement("span");
     timeContainer.className = "chat-timestamp";
@@ -337,29 +328,19 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
     bubbleContainer.appendChild(timeContainer);
   }
 
-  // ============================================================================
-  // 🗑️ USER ACTION: THREE-BUTTON DELETION INTERCEPTOR (PERMANENT / TEMPORARY / CANCEL)
-  // ============================================================================
-  // 1. IDENTITY CHECK: Ensures you can only delete your own messages.
   if (username === "You") {
     rowDiv.classList.add("sent");
 
-    // 2. GUARD CLAUSE: Checks if the delete button exists and if the message is active.
     if (deleteBtn && !isDeleted) {
-      // Unhide the main delete icon/button for your active message row.
       deleteBtn.style.display = "inline-block";
 
-      // 3. ACTION MENU INJECTOR: Spawns three true interactive options on click.
       deleteBtn.addEventListener("click", () => {
-        // Prevent duplicate menus from stacking up if clicked twice
         if (rowDiv.querySelector(".custom-delete-menu")) return;
 
-        // Create a temporary layout container row
         const menuContainer = document.createElement("div");
         menuContainer.className = "custom-delete-menu";
         menuContainer.style.cssText = "display: flex; gap: 5px; margin-top: 5px; font-size: 12px;";
 
-        // Button A: Delete Permanently
         const btnPermanent = document.createElement("button");
         btnPermanent.textContent = "🗑️ Permanently";
         btnPermanent.style.cssText = "background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
@@ -368,7 +349,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
           menuContainer.remove();
         });
 
-        // Button B: Delete Temporarily
         const btnTemporary = document.createElement("button");
         btnTemporary.textContent = "⏱️ Temporarily";
         btnTemporary.style.cssText = "background: #ffcc00; color: black; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
@@ -377,20 +357,16 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
           menuContainer.remove();
         });
 
-        // Button C: Cancel
         const btnCancel = document.createElement("button");
         btnCancel.textContent = "❌ Cancel";
         btnCancel.style.cssText = "background: #ccc; color: black; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
         btnCancel.addEventListener("click", () => {
-          menuContainer.remove(); // Safely closes the choices without actions
+          menuContainer.remove();
         });
 
-        // Assemble the buttons into the card view container
         menuContainer.appendChild(btnPermanent);
         menuContainer.appendChild(btnTemporary);
         menuContainer.appendChild(btnCancel);
-
-        // Inject the choice interface right inside the active message row block layout
         rowDiv.appendChild(menuContainer);
       });
 
@@ -519,122 +495,80 @@ document.getElementById("form")?.addEventListener("submit", async (e) => {
 
     input.value = "";
     input.focus();
+    hideEmojiSuggestion();
   } catch (err) {
     console.error("Critical error preparing outbound message transmission: ", err);
   }
 });
 
 // ============================================================================
-// EMOJI PICKER
+// EMOJI PICKER & TEXT PATTERN CODES AUTO-SUGGESTION
 // ============================================================================
 const EMOJI_CATEGORIES = {
   smileys:    ["😀","😁","😂","🤣","😊","😇","🙂","😉","😍","🥰","😘","😜","🤔","😐","😑","😶","🙄","😏","😒","😞","😔","😟","😕","🙁","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤯","😳","🥴","😵","🤐","😷","🤒","🤕"],
   gestures:   ["👋","🤚","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","🤲","🤝","🙏","💪","🦾","🫱","🫲","🫳","🫴","🫵"],
   hearts:     ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","❤️‍🔥","❤️‍🩹","🫀"],
-  animals:    ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🪶","🐓","🦃","🦤","🦚","🦜","🦢","🦩","🕊️","🐇","🦝","🦨","🦡","🦫","🦦","🦥","🐁","🐀","🐿️","🦔"],
-  food:       ["🍕","🍔","🌮","🌯","🥗","🍜","🍣","🍱","🍛","🍲","🥘","🍝","🍠","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🧃","🥤","🧋","☕","🍵","🧉","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🍾","🧊","🥄","🍴","🍽️"],
-  activities: ["⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🥊","🥋","🎽","🛹","🛼","🛷","⛸️","🥅","⛳","🎣","🤿","🎽","🎿","🛷","🥌","🎯","🪃","🏹","🎣","🤿","🎽","🎮","🕹️","🎲","🧩","🧸","♟️","🃏","🀄","🎴","🎭","🎨","🖼️","🎰","🎳"],
-  symbols:    ["✅","❌","⭕","🔴","🟠","🟡","🟢","🔵","🟣","⚫","⚪","🟤","🔶","🔷","🔸","🔹","🔺","🔻","💠","🔘","🔲","🔳","▪️","▫️","◾","◽","◼️","◻️","🔈","🔉","🔊","📢","📣","🔔","🔕","🎵","🎶","💯","🔥","✨","🌟","⭐","🌈","☀️","🌤️","⛅","🌧️","⛈️","🌩️","❄️","🌊","💧","🌸","🌺","🌻","🌹","🍀","🌿","🍃"],
+  animals:    ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆"," eagles","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧"]
 };
 
-let currentEmojiCategory = "smileys";
+const EMOJI_SUGGESTIONS = {
+  "lol": "😂",
+  "rofl": "🤣",
+  "lmao": "💀",
+  "omg": "😱",
+  "wtf": "🤬",
+  "brb": "⏰",
+  "btw": "🤷",
+  "love": "❤️",
+  "hey": "👋",
+  "hi": "👋",
+  "sad": "😢"
+};
 
-const emojiToggleBtn  = document.getElementById("emoji-toggle-btn");
-const emojiDrawer     = document.getElementById("emoji-drawer");
-const closeEmojiBtn   = document.getElementById("close-emoji-btn");
-const emojiGrid       = document.getElementById("emoji-grid");
-const messageInput    = document.getElementById("data");
+const chatInput = document.getElementById("data");
+const suggestionPopup = document.getElementById("emoji-suggestion-popup");
+const suggestedEmojiSpan = document.getElementById("suggested-emoji");
+let activeSuggestion = null;
 
-function renderEmojiGrid(category) {
-  if (!emojiGrid) return;
-  emojiGrid.replaceChildren();
+chatInput?.addEventListener("input", () => {
+  const text = chatInput.value;
+  const words = text.trim().split(/\s+/);
+  const lastWord = words[words.length - 1]?.toLowerCase();
 
-  // Highlight the active tab
-  document.querySelectorAll(".emoji-tab-btn").forEach(btn => {
-    btn.style.opacity    = btn.dataset.category === category ? "1" : "0.45";
-    btn.style.transform  = btn.dataset.category === category ? "scale(1.2)" : "scale(1)";
-  });
+  if (lastWord && EMOJI_SUGGESTIONS[lastWord]) {
+    activeSuggestion = { word: lastWord, emoji: EMOJI_SUGGESTIONS[lastWord] };
+    suggestedEmojiSpan.textContent = `${activeSuggestion.word} ➔ ${activeSuggestion.emoji}`;
+    suggestionPopup.style.display = "block";
 
-  EMOJI_CATEGORIES[category].forEach(emoji => {
-    const btn = document.createElement("button");
-    btn.type        = "button";
-    btn.textContent = emoji;
-    btn.title       = emoji;
-    btn.style.cssText = "background:none;border:none;font-size:1.4rem;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;";
-    btn.addEventListener("mouseenter", () => btn.style.background = "rgba(128,128,128,0.15)");
-    btn.addEventListener("mouseleave", () => btn.style.background = "none");
+    // Position suggestion box directly over chat textbox line
+    suggestionPopup.style.bottom = `${chatInput.offsetHeight + 15}px`;
+    suggestionPopup.style.left = `${chatInput.offsetLeft}px`;
+  } else {
+    hideEmojiSuggestion();
+  }
+});
 
-    // Insert the emoji at the cursor position rather than always appending to the end
-    btn.addEventListener("click", () => {
-      const start = messageInput.selectionStart ?? messageInput.value.length;
-      const end   = messageInput.selectionEnd   ?? messageInput.value.length;
-      messageInput.value = messageInput.value.slice(0, start) + emoji + messageInput.value.slice(end);
-      // Restore cursor position just after the inserted emoji
-      const newCursor = start + emoji.length;
-      messageInput.setSelectionRange(newCursor, newCursor);
-      messageInput.focus();
-    });
-
-    emojiGrid.appendChild(btn);
-  });
+function hideEmojiSuggestion() {
+  if (suggestionPopup) suggestionPopup.style.display = "none";
+  activeSuggestion = null;
 }
 
-// Tab switching
-document.querySelectorAll(".emoji-tab-btn").forEach(btn => {
-  btn.style.cssText = "background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px 6px;border-radius:6px;transition:transform 0.15s,opacity 0.15s;";
-  btn.addEventListener("click", () => {
-    currentEmojiCategory = btn.dataset.category;
-    renderEmojiGrid(currentEmojiCategory);
-  });
-});
-
-// Toggle open/close
-emojiToggleBtn?.addEventListener("click", () => {
-  const isHidden = emojiDrawer.style.display === "none" || !emojiDrawer.style.display;
-  emojiDrawer.style.display = isHidden ? "flex" : "none";
-  if (isHidden) renderEmojiGrid(currentEmojiCategory);
-  // Close the GIF drawer if it's open at the same time
-  if (gifDrawer) gifDrawer.style.display = "none";
-});
-
-closeEmojiBtn?.addEventListener("click", () => {
-  emojiDrawer.style.display = "none";
-});
-
-// Close emoji drawer if user clicks outside it
-document.addEventListener("click", (e) => {
-  if (emojiDrawer && emojiDrawer.style.display === "flex") {
-    if (!emojiDrawer.contains(e.target) && e.target !== emojiToggleBtn) {
-      emojiDrawer.style.display = "none";
-    }
+function injectSuggestedEmoji() {
+  if (!activeSuggestion || !chatInput) return;
+  const text = chatInput.value;
+  const lastIndex = text.toLowerCase().lastIndexOf(activeSuggestion.word);
+  if (lastIndex !== -1) {
+    chatInput.value = text.substring(0, lastIndex) + activeSuggestion.emoji + " ";
   }
-});
-
-// ============================================================================
-// 🕒 TIMESTAMP FORMATTING UTILITY
-// ============================================================================
-function formatChatTimestamp(unixTimestamp) {
-  if (!unixTimestamp) return "";
-
-  const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
-  const now = new Date();
-
-  // Format the time part (e.g., "3:15 PM")
-  const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  // Check if it's today
-  if (date.toDateString() === now.toDateString()) {
-    return `Today at ${timeString}`;
-  }
-
-  // Check if it's yesterday
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (date.toDateString() === yesterday.toDateString()) {
-    return `Yesterday at ${timeString}`;
-  }
-
-  // Otherwise, return full date and time (e.g., "Jun 22, 3:15 PM")
-  const dateOptions = { month: 'short', day: 'numeric' };
-  return `${date.toLocaleDateString([], dateOptions)}, ${timeString}`;
+  hideEmojiSuggestion();
+  chatInput.focus();
 }
+
+suggestionPopup?.addEventListener("click", injectSuggestedEmoji);
+
+chatInput?.addEventListener("keydown", (e) => {
+  if (activeSuggestion && (e.key === " " || e.key === "Enter")) {
+    e.preventDefault();
+    injectSuggestedEmoji();
+  }
+});

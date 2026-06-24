@@ -435,3 +435,36 @@ main#content {
 .chat-gif-button:active {
   transform: translateY(1px);
 }
+/* ============================================================================
+   EMOJI AUTO-SUGGESTION POPUP STYLE EXTENSIONS
+   ============================================================================ */
+#emoji-suggestion-popup {
+  display: none;
+  position: absolute;
+  bottom: 72px;
+  left: 36px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--bubble-received-border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  z-index: 105;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.1s ease;
+}
+
+#emoji-suggestion-popup:hover {
+  transform: translateY(-2px);
+}
+
+.suggestion-tip {
+  color: var(--text-muted);
+  margin-left: 6px;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
