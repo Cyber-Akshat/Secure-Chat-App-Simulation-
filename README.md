@@ -89,6 +89,14 @@ Leeds Trinity Repo: [cs-ltu.github.io](https://github.com/CS-LTU/CS-LTU.github.i
 
 ---
 
+## Improvements
+* Display Time and  date in the messages
+* Emoji shortcuts: :lol
+* Requirements in one file
+* Listing delete --> delete from json file
+
+---
+
 ## Projects Chosen
 - Patrick: SQL Injection Simulation / Caeser Cipher Encoder Decoder
 - Akshat: Hash Cracker & Hashing Challenge / Encryption, Caeser Cipher Encoder Decoder

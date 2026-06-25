@@ -115,6 +115,9 @@ body::after {
 .darkmode #theme-switch .sun-icon {
   display: block;
 }
+.darkmode #emoji-toggle-btn img {
+  filter: invert(1);
+}
 
 /* ============================================================================
    TOP NAVIGATION HEADER
@@ -237,6 +240,9 @@ main#content {
 /* ============================================================================
    WHATSAPP-STYLE CHAT BUBBLES
    ============================================================================ */
+/* ============================================================================
+   WHATSAPP-STYLE CHAT BUBBLES
+   ============================================================================ */
 #conversation {
   flex: 1;
   overflow-y: auto;
@@ -275,6 +281,15 @@ main#content {
   word-break: break-word;
 }
 
+/* 🕒 TIMESTAMP TYPOGRAPHY ENGINE */
+.chat-timestamp {
+  display: block;
+  font-size: 0.70rem;
+  margin-top: 4px;
+  clear: both;
+  font-weight: 400;
+}
+
 /* Sent messages (YOU) */
 .message-row.sent {
   justify-content: flex-end;
@@ -287,12 +302,21 @@ main#content {
 .message-row.sent .sender-name {
   color: #059669;
 }
+.message-row.sent .chat-timestamp {
+  text-align: right;
+  color: rgba(55, 65, 81, 0.6); /* Dark grey on light green */
+}
+
+/* Sent messages (YOU) - DARK MODE */
 .darkmode .message-row.sent .message-bubble {
   background-color: #005c4b;
   color: #ffffff;
 }
 .darkmode .message-row.sent .sender-name {
   color: #4ade80;
+}
+.darkmode .message-row.sent .chat-timestamp {
+  color: rgba(255, 255, 255, 0.65); /* White tint on dark green */
 }
 
 /* Received messages (OTHERS) */
@@ -308,18 +332,14 @@ main#content {
 .message-row.received .sender-name {
   color: #2563eb;
 }
-.darkmode .message-row.received .sender-name {
-  color: #60a5fa;
+.message-row.received .chat-timestamp {
+  text-align: left;
+  color: var(--text-muted); /* Adaptive color rule for received texts */
 }
 
-#typing-indicator {
-  font-style: italic;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-bottom: 8px;
-  align-self: flex-start;
-  height: 20px;
-  padding-left: 10px;
+/* Received messages (OTHERS) - DARK MODE */
+.darkmode .message-row.received .sender-name {
+  color: #60a5fa;
 }
 
 /* ============================================================================
@@ -414,4 +434,37 @@ main#content {
 
 .chat-gif-button:active {
   transform: translateY(1px);
+}
+/* ============================================================================
+   EMOJI AUTO-SUGGESTION POPUP STYLE EXTENSIONS
+   ============================================================================ */
+#emoji-suggestion-popup {
+  display: none;
+  position: absolute;
+  bottom: 72px;
+  left: 36px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--bubble-received-border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  z-index: 105;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.1s ease;
+}
+
+#emoji-suggestion-popup:hover {
+  transform: translateY(-2px);
+}
+
+.suggestion-tip {
+  color: var(--text-muted);
+  margin-left: 6px;
+  font-size: 0.75rem;
+  font-weight: 400;
 }

@@ -7,6 +7,11 @@ function sanitizeUsername(raw) {
   return noTags.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 30);
 }
 
+function formatChatTimestamp(unixTimestamp) {
+  const date = new Date(unixTimestamp * 1000);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // ============================================================================
 // LIGHT MODE / DARK MODE LOCAL LIFECYCLE
 // ============================================================================
@@ -109,14 +114,14 @@ socket.onmessage = async function(event) {
         recipient: data.recipient,
         encrypted_message: data.message,
         gif_url: data.gifUrl,
-        is_deleted: data.is_deleted || false
+        is_deleted: data.is_deleted || false,
+        timestamp: data.timestamp || (Date.now() / 1000)
       });
 
       if (data.recipient === myUsername && data.username !== myUsername && data.username !== activeRecipient) {
         unreadCounts[data.username] = (unreadCounts[data.username] || 0) + 1;
         refreshUserListUI();
       }
-
       await renderConversation();
     }
     else if (data.event === "chat-history") {
@@ -169,23 +174,23 @@ function updateUserList(usernames) {
       updateUserList(usernames);
       await renderConversation();
     });
-//it serves as a guid for the heigth and width for the icons/logo
+
     const avatarImg = document.createElement("img");
     avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff&rounded=true&size=32`;
     avatarImg.style.width = "32px";
     avatarImg.style.height = "32px";
     avatarImg.style.marginRight = "12px";
-//sets the font of the logo
+
     const nameSpan = document.createElement("span");
     nameSpan.textContent = username;
     nameSpan.setAttribute("data-username", username);
     nameSpan.style.fontWeight = (activeRecipient === username) ? "700" : "500";
-//so this notifies the users another user is online
+
     const badgeWrapper = document.createElement("div");
     badgeWrapper.style.display = "flex";
     badgeWrapper.style.alignItems = "center";
     badgeWrapper.style.gap = "8px";
-//this notifies the user about unread messages
+
     if (unreadCounts[username] > 0) {
       const unreadBadge = document.createElement("span");
       unreadBadge.textContent = unreadCounts[username];
@@ -198,7 +203,7 @@ function updateUserList(usernames) {
       unreadBadge.style.lineHeight = "1";
       badgeWrapper.appendChild(unreadBadge);
     }
-//sets the color and the height of the dot
+
     const statusDot = document.createElement("span");
     statusDot.style.width = "8px";
     statusDot.style.height = "8px";
@@ -211,12 +216,12 @@ function updateUserList(usernames) {
     listItem.appendChild(badgeWrapper);
     userList.appendChild(listItem);
   }
-// styling for the usernames
+
   if (usernames.includes(myUsername)) {
     const myItem = document.createElement("li");
     myItem.style.opacity = "0.85";
     myItem.style.cursor = "default";
-//designs the avatar of the users connected and sets it position
+
     const myAvatar = document.createElement("img");
     myAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(myUsername)}&background=9333ea&color=fff&rounded=true&size=32`;
     myAvatar.style.width = "32px";
@@ -252,7 +257,7 @@ async function renderConversation() {
     welcomeDiv.style.marginTop = "20px";
     welcomeDiv.innerHTML = `
       <h2> 
-        <img src="C-removebg-preview.png" height="400" width="auto">  
+        <img src="C-removebg-preview.png" height="400" width="auto">
       </h2>
       <p style="color: var(--text-muted); font-size: 0.95rem;">Select an online user from the sidebar to chat privately.</p>
     `;
@@ -269,15 +274,15 @@ async function renderConversation() {
     const senderDisplay = (msg.sender === myUsername) ? "You" : msg.sender;
 
     if (msg.is_deleted) {
-      addMessageToChat(msg.id, senderDisplay, "This message has been deleted", null, true);
+      addMessageToChat(msg.id, senderDisplay, "This message has been deleted", null, true, msg.timestamp);
     } else {
       const clearTextMessage = await decryptText(msg.encrypted_message);
-      addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url, false);
+      addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url, false, msg.timestamp);
     }
   }
 }
 
-function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted = false) {
+function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted = false, timestamp = null) {
   const conversationBox = document.getElementById("conversation");
   const template = document.getElementById("message");
   if (!conversationBox || !template) return;
@@ -303,25 +308,86 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
   }
 
   textParagraph.textContent = messageText || "";
-//Sets text font to italic once deleted
-//test
+
   if (isDeleted) {
     textParagraph.style.fontStyle = "italic";
     textParagraph.style.opacity = "0.7";
   }
-//ensure messages are sent
+
+  if (timestamp) {
+    const timeContainer = document.createElement("span");
+    timeContainer.className = "chat-timestamp";
+    timeContainer.textContent = formatChatTimestamp(timestamp);
+
+    timeContainer.style.display = "block";
+    timeContainer.style.fontSize = "0.72rem";
+    timeContainer.style.marginTop = "4px";
+    timeContainer.style.opacity = "0.6";
+
+    const bubbleContainer = messageClone.querySelector(".message-bubble") || rowDiv;
+    bubbleContainer.appendChild(timeContainer);
+  }
+
+  // ============================================================================
+  // 🗑️ USER ACTION: THREE-BUTTON DELETION INTERCEPTOR (SVG IMAGE FILE ASSETS)
+  // ============================================================================
   if (username === "You") {
     rowDiv.classList.add("sent");
+
     if (deleteBtn && !isDeleted) {
       deleteBtn.style.display = "inline-block";
+
       deleteBtn.addEventListener("click", () => {
-        if (confirm("Are you sure you want to delete this message?")) {
-          socket.send(JSON.stringify({
-            event: "delete-message",
-            id: msgId
-          }));
-        }
+        if (rowDiv.querySelector(".custom-delete-menu")) return;
+
+        const menuContainer = document.createElement("div");
+        menuContainer.className = "custom-delete-menu";
+        menuContainer.style.cssText = "display: flex; gap: 6px; margin-top: 6px; font-size: 12px; align-items: center;";
+
+        // 1. BUTTON A: Delete Permanently (Uses delete.svg)
+        const btnPermanent = document.createElement("button");
+        btnPermanent.title = "Delete Permanently";
+        btnPermanent.style.cssText = "background: #ff4d4d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
+        btnPermanent.textContent = "";
+        btnPermanent.innerHTML = `
+          <img src="delete.svg" width="14" height="14" style="filter: invert(1); display: block;" />
+          <span style="margin-left: 4px;">Permanently</span>
+        `;
+        btnPermanent.addEventListener("click", () => {
+          socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "permanent" }));
+          menuContainer.remove();
+        });
+
+        // 2. BUTTON B: Delete Temporarily (Uses chat_dashed.svg)
+        const btnTemporary = document.createElement("button");
+        btnTemporary.title = "Delete Temporarily";
+        btnTemporary.style.cssText = "background: #ffcc00; color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
+        btnTemporary.textContent = "";
+        btnTemporary.innerHTML = `
+          <img src="chat_dashed.svg" width="14" height="14" style="display: block;" />
+          <span style="margin-left: 4px;">Temporarily</span>
+        `;
+        btnTemporary.addEventListener("click", () => {
+          socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "temporary" }));
+          menuContainer.remove();
+        });
+
+        // 3. BUTTON C: Cancel
+        const btnCancel = document.createElement("button");
+        btnCancel.title = "Cancel";
+        btnCancel.style.cssText = "background: #ccc; color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
+        btnCancel.textContent = "";
+        btnCancel.innerHTML = `<span>Cancel</span>`;
+        btnCancel.addEventListener("click", () => {
+          menuContainer.remove();
+        });
+
+        menuContainer.appendChild(btnPermanent);
+        menuContainer.appendChild(btnTemporary);
+        menuContainer.appendChild(btnCancel);
+        rowDiv.appendChild(menuContainer);
       });
+
     } else if (deleteBtn) {
       deleteBtn.remove();
     }
@@ -422,6 +488,60 @@ function loadOpenAccessGifs() {
 }
 
 // ============================================================================
+// EMOJI DRAWER MANAGEMENT
+// ============================================================================
+function loadEmojiCategory(category) {
+  if (!emojiGrid) return;
+  emojiGrid.replaceChildren();
+  const emojis = EMOJI_CATEGORIES[category] || [];
+  emojis.forEach(emoji => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = emoji;
+    btn.style.cssText = "background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 4px; border-radius: 4px;";
+    btn.addEventListener("click", () => {
+      if (chatInput) {
+        chatInput.value += emoji;
+        chatInput.focus();
+      }
+      emojiDrawer.style.display = "none";
+    });
+    emojiGrid.appendChild(btn);
+  });
+}
+
+// Tab switching
+document.querySelectorAll(".emoji-tab-btn").forEach(tabBtn => {
+  tabBtn.addEventListener("click", () => {
+    document.querySelectorAll(".emoji-tab-btn").forEach(b => b.classList.remove("active-tab"));
+    tabBtn.classList.add("active-tab");
+    loadEmojiCategory(tabBtn.dataset.category);
+  });
+});
+
+const emojiToggleBtn = document.getElementById("emoji-toggle-btn");
+const emojiDrawer = document.getElementById("emoji-drawer");
+const closeEmojiBtn = document.getElementById("close-emoji-btn");
+const emojiGrid = document.getElementById("emoji-grid");
+
+if (emojiToggleBtn && emojiDrawer) {
+  emojiToggleBtn.addEventListener("click", () => {
+    if (emojiDrawer.style.display === "none" || !emojiDrawer.style.display) {
+      emojiDrawer.style.display = "flex";
+      loadEmojiCategory("smileys"); // load default tab
+    } else {
+      emojiDrawer.style.display = "none";
+    }
+  });
+}
+
+if (closeEmojiBtn && emojiDrawer) {
+  closeEmojiBtn.addEventListener("click", () => {
+    emojiDrawer.style.display = "none";
+  });
+}
+
+// ============================================================================
 // CHAT FORM INPUT SUBMIT ACTION
 // ============================================================================
 document.getElementById("form")?.addEventListener("submit", async (e) => {
@@ -436,13 +556,91 @@ document.getElementById("form")?.addEventListener("submit", async (e) => {
     return;
   }
 
-  const securePayload = await encryptText(rawText);
-  socket.send(JSON.stringify({
-    event: "send-message",
-    recipient: activeRecipient,
-    message: securePayload,
-    gifUrl: null
-  }));
+  try {
+    const securePayload = await encryptText(rawText);
+    socket.send(JSON.stringify({
+      event: "send-message",
+      recipient: activeRecipient,
+      message: securePayload,
+      gifUrl: null
+    }));
 
-  input.value = "";
+    input.value = "";
+    input.focus();
+    hideEmojiSuggestion();
+  } catch (err) {
+    console.error("Critical error preparing outbound message transmission: ", err);
+  }
+});
+
+// ============================================================================
+// EMOJI PICKER & TEXT PATTERN CODES AUTO-SUGGESTION
+// ============================================================================
+const EMOJI_CATEGORIES = {
+  smileys:    ["😀","😁","😂","🤣","😊","😇","🙂","😉","😍","🥰","😘","😜","🤔","😐","😑","😶","🙄","😏","😒","😞","😔","😟","😕","🙁","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤯","😳","🥴","😵","🤐","😷","🤒","🤕"],
+  gestures:   ["👋","🤚","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","🤲","🤝","🙏","💪","🦾","🫱","🫲","🫳","🫴","🫵"],
+  hearts:     ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","❤️‍🔥","❤️‍🩹","🫀"],
+  animals:    ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧"]
+};
+
+const EMOJI_SUGGESTIONS = {
+  ":lol": "😂",
+  ":rofl": "🤣",
+  ":lmao": "💀",
+  ":omg": "😱",
+  ":wtf": "🤬",
+  ":brb": "⏰",
+  ":btw": "🤷",
+  ":love": "❤️",
+  ":hey": "👋",
+  ":hi": "👋",
+  ":sad": "😢"
+};
+
+const chatInput = document.getElementById("data");
+const suggestionPopup = document.getElementById("emoji-suggestion-popup");
+const suggestedEmojiSpan = document.getElementById("suggested-emoji");
+let activeSuggestion = null;
+
+chatInput?.addEventListener("input", () => {
+  const text = chatInput.value;
+  const words = text.trim().split(/\s+/);
+  const lastWord = words[words.length - 1]?.toLowerCase();
+
+  if (lastWord && EMOJI_SUGGESTIONS[lastWord]) {
+    activeSuggestion = { word: lastWord, emoji: EMOJI_SUGGESTIONS[lastWord] };
+    suggestedEmojiSpan.textContent = `${activeSuggestion.word} ➔ ${activeSuggestion.emoji}`;
+    suggestionPopup.style.display = "block";
+
+    // Position suggestion box directly over chat textbox line
+    suggestionPopup.style.bottom = `${chatInput.offsetHeight + 15}px`;
+    suggestionPopup.style.left = `${chatInput.offsetLeft}px`;
+  } else {
+    hideEmojiSuggestion();
+  }
+});
+
+function hideEmojiSuggestion() {
+  if (suggestionPopup) suggestionPopup.style.display = "none";
+  activeSuggestion = null;
+}
+
+function injectSuggestedEmoji() {
+  if (!activeSuggestion || !chatInput) return;
+  const text = chatInput.value;
+  const lastIndex = text.toLowerCase().lastIndexOf(activeSuggestion.word);
+  if (lastIndex !== -1) {
+    chatInput.value = text.substring(0, lastIndex) + activeSuggestion.emoji + " ";
+  }
+  hideEmojiSuggestion();
+  chatInput.focus();
+}
+
+suggestionPopup?.addEventListener("click", injectSuggestedEmoji);
+
+chatInput?.addEventListener("keydown", (e) => {
+  if (activeSuggestion && (e.key === " " || e.key === "Enter")) {
+    e.preventDefault();
+    injectSuggestedEmoji();
+  }
 });
