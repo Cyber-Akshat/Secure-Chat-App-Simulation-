@@ -27,7 +27,7 @@ themeSwitch?.addEventListener("click", () => {
 });
 
 // ============================================================================
-// 🔐 SESSION CHECKING
+// SESSION CHECKING
 // ============================================================================
 const storedUsername = sessionStorage.getItem("hichat_username") || localStorage.getItem("hichat_username");
 
@@ -37,9 +37,9 @@ if (!storedUsername) {
 }
 
 const myUsername = sanitizeUsername(storedUsername);
-let activeRecipient = null; // 🎯 Tracks who we are privately messaging
-let allChatLogs = [];       // 🗄️ Locally cached logs for smooth user switching
-let unreadCounts = {};      // 🛑 Tracks unread message tallies per user handle
+let activeRecipient = null; // Tracks who we are privately messaging
+let allChatLogs = [];       // Locally cached logs for smooth user switching
+let unreadCounts = {};      // Tracks unread message tallies per user handle
 
 document.getElementById("logout-btn")?.addEventListener("click", () => {
   sessionStorage.removeItem("hichat_username");
@@ -48,7 +48,32 @@ document.getElementById("logout-btn")?.addEventListener("click", () => {
 });
 
 // ============================================================================
-// 🔒 END-TO-END ENCRYPTION (AES-GCM ENGINE)
+// LOCAL-ONLY "DELETE FOR ME" TRACKING (temporary delete)
+// ============================================================================
+// Temporary delete never touches the server or the other party — it just
+// hides a message ID on this browser/account going forward, the same way
+// WhatsApp's "Delete for Me" works. Persisted per-user in localStorage so
+// it survives refreshes/reconnects.
+const LOCALLY_HIDDEN_KEY = `hichat_locally_hidden_${myUsername}`;
+
+function getLocallyHiddenIds() {
+  try {
+    const raw = localStorage.getItem(LOCALLY_HIDDEN_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch (err) {
+    return new Set();
+  }
+}
+
+function hideMessageLocally(msgId) {
+  const hidden = getLocallyHiddenIds();
+  hidden.add(msgId);
+  localStorage.setItem(LOCALLY_HIDDEN_KEY, JSON.stringify(Array.from(hidden)));
+}
+
+// ============================================================================
+// END-TO-END ENCRYPTION (AES-GCM ENGINE)
 // ============================================================================
 const ENCRYPTION_PASSPHRASE = "SuperSecretChatRoomKey123!";
 
@@ -90,7 +115,7 @@ async function decryptText(encryptedPayload) {
 }
 
 // ============================================================================
-// 📡 WEB_SOCKET COMMUNICATIONS HANDLER
+// WEB_SOCKET COMMUNICATIONS HANDLER
 // ============================================================================
 const socket = new WebSocket(`ws://${window.location.host}/start_web_socket?username=${encodeURIComponent(myUsername)}`);
 
@@ -115,6 +140,7 @@ socket.onmessage = async function(event) {
         encrypted_message: data.message,
         gif_url: data.gifUrl,
         is_deleted: data.is_deleted || false,
+        is_permanent: data.is_permanent || false,
         timestamp: data.timestamp || (Date.now() / 1000)
       });
 
@@ -125,7 +151,7 @@ socket.onmessage = async function(event) {
       await renderConversation();
     }
     else if (data.event === "chat-history") {
-      allChatLogs = data.messages;
+      allChatLogs = Array.isArray(data.messages) ? data.messages : [];
       await renderConversation();
     }
     else if (data.event === "error") {
@@ -134,11 +160,14 @@ socket.onmessage = async function(event) {
       return;
     }
     else if (data.event === "delete-message") {
+      // The server only ever broadcasts this for permanent ("delete for everyone")
+      // deletes — temporary deletes are local-only and never reach the server.
       const targetMsg = allChatLogs.find(msg => msg.id === data.id);
       if (targetMsg) {
         targetMsg.is_deleted = true;
         targetMsg.encrypted_message = "";
         targetMsg.gif_url = null;
+        targetMsg.is_permanent = true;
       }
       await renderConversation();
     }
@@ -265,16 +294,23 @@ async function renderConversation() {
     return;
   }
 
+  const locallyHidden = getLocallyHiddenIds();
+
   const privateThread = allChatLogs.filter(msg =>
-    (msg.sender === myUsername && msg.recipient === activeRecipient) ||
-    (msg.sender === activeRecipient && msg.recipient === myUsername)
+    msg &&
+    !locallyHidden.has(msg.id) && // "Delete for Me" messages never render on this client again
+    ((msg.sender === myUsername && msg.recipient === activeRecipient) ||
+     (msg.sender === activeRecipient && msg.recipient === myUsername))
   );
 
   for (const msg of privateThread) {
     const senderDisplay = (msg.sender === myUsername) ? "You" : msg.sender;
 
     if (msg.is_deleted) {
-      addMessageToChat(msg.id, senderDisplay, "This message has been deleted", null, true, msg.timestamp);
+      // Only permanent ("delete for everyone") deletes reach this branch —
+      // both sides see the placeholder for those.
+      const displayMessage = "This message has been deleted permanently";
+      addMessageToChat(msg.id, senderDisplay, displayMessage, null, true, msg.timestamp);
     } else {
       const clearTextMessage = await decryptText(msg.encrypted_message);
       addMessageToChat(msg.id, senderDisplay, clearTextMessage, msg.gif_url, false, msg.timestamp);
@@ -328,9 +364,6 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
     bubbleContainer.appendChild(timeContainer);
   }
 
-  // ============================================================================
-  // 🗑️ USER ACTION: THREE-BUTTON DELETION INTERCEPTOR (SVG IMAGE FILE ASSETS)
-  // ============================================================================
   if (username === "You") {
     rowDiv.classList.add("sent");
 
@@ -344,39 +377,37 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
         menuContainer.className = "custom-delete-menu";
         menuContainer.style.cssText = "display: flex; gap: 6px; margin-top: 6px; font-size: 12px; align-items: center;";
 
-        // 1. BUTTON A: Delete Permanently (Uses delete.svg)
         const btnPermanent = document.createElement("button");
         btnPermanent.title = "Delete Permanently";
         btnPermanent.style.cssText = "background: #ff4d4d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
-        btnPermanent.textContent = "";
         btnPermanent.innerHTML = `
           <img src="delete.svg" width="14" height="14" style="filter: invert(1); display: block;" />
           <span style="margin-left: 4px;">Permanently</span>
         `;
         btnPermanent.addEventListener("click", () => {
+          // Delete for everyone — server updates the DB and notifies both sides.
           socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "permanent" }));
           menuContainer.remove();
         });
 
-        // 2. BUTTON B: Delete Temporarily (Uses chat_dashed.svg)
         const btnTemporary = document.createElement("button");
         btnTemporary.title = "Delete Temporarily";
         btnTemporary.style.cssText = "background: #ffcc00; color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
-        btnTemporary.textContent = "";
         btnTemporary.innerHTML = `
           <img src="chat_dashed.svg" width="14" height="14" style="display: block;" />
           <span style="margin-left: 4px;">Temporarily</span>
         `;
-        btnTemporary.addEventListener("click", () => {
-          socket.send(JSON.stringify({ event: "delete-message", id: msgId, mode: "temporary" }));
+        btnTemporary.addEventListener("click", async () => {
+          // Delete for me — purely local. Never sent to the server, so the
+          // other person's chat is completely unaffected.
+          hideMessageLocally(msgId);
           menuContainer.remove();
+          await renderConversation();
         });
 
-        // 3. BUTTON C: Cancel
         const btnCancel = document.createElement("button");
         btnCancel.title = "Cancel";
         btnCancel.style.cssText = "background: #ccc; color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;";
-        btnCancel.textContent = "";
         btnCancel.innerHTML = `<span>Cancel</span>`;
         btnCancel.addEventListener("click", () => {
           menuContainer.remove();
@@ -401,7 +432,7 @@ function addMessageToChat(msgId, username, messageText, gifUrl = null, isDeleted
 }
 
 // ============================================================================
-// 🧹 LOCAL CLEAR CHAT ENGINE
+// LOCAL CLEAR CHAT ENGINE
 // ============================================================================
 document.getElementById("clear-btn")?.addEventListener("click", () => {
   if (!activeRecipient) {
@@ -411,7 +442,7 @@ document.getElementById("clear-btn")?.addEventListener("click", () => {
 
   if (confirm(`Are you sure you want to clear your conversation history with ${activeRecipient}? This will only clear it on your screen.`)) {
     allChatLogs = allChatLogs.filter(msg =>
-      !((msg.sender === myUsername && msg.recipient === activeRecipient) ||
+      msg && !((msg.sender === myUsername && msg.recipient === activeRecipient) ||
         (msg.sender === activeRecipient && msg.recipient === myUsername))
     );
     renderConversation();
@@ -510,7 +541,6 @@ function loadEmojiCategory(category) {
   });
 }
 
-// Tab switching
 document.querySelectorAll(".emoji-tab-btn").forEach(tabBtn => {
   tabBtn.addEventListener("click", () => {
     document.querySelectorAll(".emoji-tab-btn").forEach(b => b.classList.remove("active-tab"));
@@ -528,7 +558,7 @@ if (emojiToggleBtn && emojiDrawer) {
   emojiToggleBtn.addEventListener("click", () => {
     if (emojiDrawer.style.display === "none" || !emojiDrawer.style.display) {
       emojiDrawer.style.display = "flex";
-      loadEmojiCategory("smileys"); // load default tab
+      loadEmojiCategory("smileys");
     } else {
       emojiDrawer.style.display = "none";
     }
@@ -611,8 +641,6 @@ chatInput?.addEventListener("input", () => {
     activeSuggestion = { word: lastWord, emoji: EMOJI_SUGGESTIONS[lastWord] };
     suggestedEmojiSpan.textContent = `${activeSuggestion.word} ➔ ${activeSuggestion.emoji}`;
     suggestionPopup.style.display = "block";
-
-    // Position suggestion box directly over chat textbox line
     suggestionPopup.style.bottom = `${chatInput.offsetHeight + 15}px`;
     suggestionPopup.style.left = `${chatInput.offsetLeft}px`;
   } else {
