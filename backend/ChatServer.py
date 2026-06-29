@@ -27,7 +27,7 @@ class ChatServer:
                        (
                            id TEXT PRIMARY KEY,
                            sender TEXT,
-                           recipient TEXT, 
+                           recipient TEXT,
                            encrypted_message TEXT,
                            gif_url TEXT,
                            is_deleted INTEGER DEFAULT 0,
@@ -101,14 +101,20 @@ class ChatServer:
         cursor.execute("SELECT id, sender, recipient, encrypted_message, gif_url, is_deleted, timestamp FROM messages")
         rows = cursor.fetchall()
         for row in rows:
+            # row columns, in order: id, sender, recipient, encrypted_message, gif_url, is_deleted, timestamp
+            db_is_deleted = row[5] if row[5] is not None else 0
+
             logs_list.append({
-                "id": row,
-                "sender": row,
-                "recipient": row,
-                "encrypted_message": row,
-                "gif_url": row,
-                "is_deleted": bool(row),
-                "timestamp": row
+                "id": row[0],
+                "sender": row[1],
+                "recipient": row[2],
+                "encrypted_message": row[3],
+                "gif_url": row[4],
+                # Only permanent deletes (is_deleted == 2) are stored server-side.
+                # Temporary "delete for me" never touches the DB at all.
+                "is_deleted": db_is_deleted == 2,
+                "is_permanent": db_is_deleted == 2,
+                "timestamp": row[6]
             })
         conn.close()
 
@@ -148,13 +154,18 @@ class ChatServer:
                 "recipient": recipient,
                 "message": message_payload,
                 "gifUrl": gif_payload,
-                "is_deleted": False
+                "is_deleted": False,
+                "timestamp": time.time()
             }, sender=username, recipient=recipient)
 
         elif event_type == "delete-message":
             msg_id = data.get("id")
             mode = data.get("mode", "permanent")
-            if msg_id:
+            # "temporary" is a client-only Delete-for-Me action. It never touches
+            # the database and is never broadcast — the other party should keep
+            # seeing the message exactly as before. Only "permanent" (delete for
+            # everyone) is persisted and sent to both sides.
+            if msg_id and mode == "permanent":
                 await self.delete_from_database(msg_id, username, mode)
 
         elif event_type == "clear-chat":
@@ -179,38 +190,32 @@ class ChatServer:
         conn.close()
 
     async def delete_from_database(self, msg_id: str, username: str, mode: str = "permanent"):
-        """Handles both temporary (soft) and permanent (hard) table updates on separate threads."""
-        recipient = await asyncio.to_thread(self._delete_sync, msg_id, username, mode)
+        """Handles the permanent (hard) table update on a separate thread, then
+        notifies both parties so the message disappears for everyone."""
+        recipient = await asyncio.to_thread(self._delete_sync, msg_id, username)
 
         if recipient:
-            # Broadcast drop notification event status to private participants
             await self.broadcast_private({
                 "event": "delete-message",
-                "id": msg_id
+                "id": msg_id,
+                "mode": mode
             }, sender=username, recipient=recipient)
 
-    def _delete_sync(self, msg_id, username, mode):
+    def _delete_sync(self, msg_id, username):
         conn = sqlite3.connect(self.db_file)
         cursor = conn.cursor()
 
-        # Security guard check: Ensure sender owns the message and retrieve recipient info
         cursor.execute("SELECT recipient FROM messages WHERE id = ? AND sender = ?", (msg_id, username))
         result = cursor.fetchone()
 
         recipient = None
         if result:
-            recipient = result
+            recipient = result[0]
 
-            # BUTTON A PATH: PERMANENT DELETION (Completely erase row record structural entity)
-            if mode == "permanent":
-                cursor.execute("DELETE FROM messages WHERE id = ?", (msg_id,))
-
-            # BUTTON B PATH: TEMPORARY DELETION (Soft delete, clear payload values)
-            elif mode == "temporary":
-                cursor.execute(
-                    "UPDATE messages SET is_deleted = 1, encrypted_message = '', gif_url = NULL WHERE id = ?",
-                    (msg_id,)
-                )
+            cursor.execute(
+                "UPDATE messages SET is_deleted = 2, encrypted_message = '', gif_url = NULL WHERE id = ?",
+                (msg_id,)
+            )
             conn.commit()
 
         conn.close()
