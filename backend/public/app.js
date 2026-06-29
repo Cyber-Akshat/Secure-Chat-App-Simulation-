@@ -552,7 +552,7 @@ document.getElementById("form")?.addEventListener("submit", async (e) => {
 
   if (!rawText) return;
   if (!activeRecipient) {
-    alert("Please select a user from the sidebar to chat privately.");
+    alert("Please select a user from the sidebar to chat privately.\nUse ':' to access emoji (:lol)");
     return;
   }
 
